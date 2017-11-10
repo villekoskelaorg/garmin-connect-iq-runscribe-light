@@ -36,7 +36,6 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mMesgPeriod;
 
     // Common
-    hidden var mMetricTitleY;
     hidden var mMetricValueY;
     hidden var mMetricValueOffsetX;
         
@@ -59,11 +58,19 @@ class RunScribeDataField extends Ui.DataField {
 
     hidden var mUpdateCountLeft = 0;
     hidden var mUpdateCountRight = 0;
+
     hidden var mUpdatesPerSlot = 5;
-    hidden var mUpdateSlotCount = 15;
+    hidden var mUpdateSlotCount = 16;
+
+    hidden var mLapUpdateCountLeft = 0;
+    hidden var mLapUpdateCountRight = 0;
     
     hidden var mLeftSlots;
     hidden var mRightSlots;
+    hidden var mLeftCurrentLap = 0.0;
+    hidden var mRightCurrentLap = 0.0;
+    hidden var mLeftPreviousLap = 0.0;
+    hidden var mRightPreviousLap = 0.0;
     
     // Constructor
     function initialize(screenShape, screenHeight) {
@@ -102,9 +109,18 @@ class RunScribeDataField extends Ui.DataField {
                
             mFieldLeft = createField(metricName + "_Left", mMetricType - 1, Fit.DATA_TYPE_FLOAT, d);
             mFieldRight = createField(metricName + "_Right", mMetricType - 1 + 6, Fit.DATA_TYPE_FLOAT, d);
-        }        
+        }    
+        
+        onTimerLap();    
     }
-    
+
+    function onTimerLap() {
+        mLeftPreviousLap = mLeftCurrentLap;
+        mRightPreviousLap = mRightCurrentLap;
+        
+        mLapUpdateCountLeft = 0;
+        mLapUpdateCountRight = 0;
+    }    
     
     function onSettingsChanged() {
         var app = App.getApp();
@@ -118,6 +134,8 @@ class RunScribeDataField extends Ui.DataField {
                 mMetricType = metricType;
                 mUpdateCountLeft = 0;
                 mUpdateCountRight = 0;
+                mLapUpdateCountLeft = 0;
+                mLapUpdateCountRight = 0;
             }
         }
         
@@ -162,6 +180,12 @@ class RunScribeDataField extends Ui.DataField {
             mLeftSlots[slotIndex] = mLeftSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
             mLeftSlots[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
             
+            updateOffset = mLapUpdateCountLeft * 1.0;
+            ++mLapUpdateCountLeft;
+
+            mLeftCurrentLap = mLeftCurrentLap * (updateOffset / (updateOffset + 1.0));
+            mLeftCurrentLap += (value * 1.0) / (updateOffset + 1.0);
+            
             if (mFieldLeft != null) {
                 mFieldLeft.setData(value);
             }
@@ -192,6 +216,12 @@ class RunScribeDataField extends Ui.DataField {
             mRightSlots[slotIndex] = mRightSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
             mRightSlots[slotIndex] = mRightSlots[slotIndex] + ((value * 1.0) / (updateOffset + 1.0));
             
+            updateOffset = mLapUpdateCountRight * 1.0;
+            ++mLapUpdateCountRight;
+
+            mRightCurrentLap = mLeftCurrentLap * (updateOffset / (updateOffset + 1.0));
+            mRightCurrentLap += (value * 1.0) / (updateOffset + 1.0);
+            
             if (mFieldRight != null) {
                 mFieldRight.setData(value);
             }
@@ -202,8 +232,6 @@ class RunScribeDataField extends Ui.DataField {
         var width = dc.getWidth();
         var height = dc.getHeight();
         
-           if (height < mScreenHeight) {
-        }
         
         xCenter = width / 2;
         yCenter = height / 2;
@@ -218,7 +246,6 @@ class RunScribeDataField extends Ui.DataField {
             
         mDataFontHeight = dc.getFontHeight(mDataFont);    
             
-        mMetricTitleY = -(yCenter);
         mMetricValueY = -mDataFontHeight * 0.5;
         
         mUpdateLayout = 0;
@@ -352,69 +379,78 @@ class RunScribeDataField extends Ui.DataField {
     
         var metricLeft = getMetric(metricType, mSensorLeft);
         var metricRight = getMetric(metricType, mSensorRight);
+
+        var leftCurrentLap = mLeftCurrentLap.format("%.1f");
+        var rightCurrentLap = mRightCurrentLap.format("%.1f");
+        var leftPreviousLap = mLeftPreviousLap.format("%.1f");
+        var rightPreviousLap = mRightPreviousLap.format("%.1f");
+
+        if (metricType == 3 || metricType == 6) {
+            leftCurrentLap = mLeftCurrentLap.format("%d");
+            rightCurrentLap = mRightCurrentLap.format("%d");
+            leftPreviousLap = mLeftPreviousLap.format("%d");
+            rightPreviousLap = mRightPreviousLap.format("%d");        
+        }
+
+        dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
+        dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
         
-        if (metricType == 7) {
-            metricLeft = ((mSensorLeft.power + mSensorRight.power) / 2).format("%d");
+        // Draw line
+        dc.drawLine(x, y + yCenter * 0.8, x, y - yCenter * 0.7);
+         
+        if (dc.getHeight() == mScreenHeight) {
+            dc.drawText(x, y - yCenter * 0.95, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
+	
+	        dc.drawText(x - xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, leftPreviousLap, Gfx.TEXT_JUSTIFY_RIGHT);
+	        dc.drawText(x - xCenter * 0.4, y - yCenter * 0.68, Gfx.FONT_NUMBER_MILD, leftCurrentLap, Gfx.TEXT_JUSTIFY_LEFT);
+	
+	        dc.drawText(x + xCenter * 0.4, y - yCenter * 0.68, Gfx.FONT_NUMBER_MILD, rightCurrentLap, Gfx.TEXT_JUSTIFY_RIGHT);
+	        dc.drawText(x + xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, rightPreviousLap, Gfx.TEXT_JUSTIFY_LEFT);
+	
+	        var slotIndexLeft = 0;
+	        var slotIndexRight = 0;
+	        var limitLeft = mLeftSlots.size() - 1;
+	        var limitRight = mRightSlots.size() - 1;
+	
+	        if (mUpdateCountLeft / mUpdatesPerSlot >= mUpdateSlotCount) {
+	            slotIndexLeft = 1 + (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
+	        } else {
+	            limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
+	        }
+	
+	        if (mUpdateCountRight / mUpdatesPerSlot >= mUpdateSlotCount) {
+	            slotIndexRight = 1 + (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
+	        } else {
+	            limitRight = mUpdateCountRight / mUpdatesPerSlot;
+	        }
+	
+	        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
+	        drawTrendLine(dc, x + xCenter * 0.1, y + yCenter * 0.7, mRightSlots, slotIndexRight, limitRight);
+        
         }
          
-        dc.drawText(x, y + mMetricTitleY, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
-
-        dc.drawText(x - xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 320, Gfx.TEXT_JUSTIFY_RIGHT);
-        dc.drawText(x - xCenter * 0.4, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 321, Gfx.TEXT_JUSTIFY_LEFT);
-
-        dc.drawText(x + xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 324, Gfx.TEXT_JUSTIFY_LEFT);
-        dc.drawText(x + xCenter * 0.4, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 322, Gfx.TEXT_JUSTIFY_RIGHT);
-
-        if (metricType == 7) {
-            // Power metric presents a single value
-            dc.drawText(x, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_CENTER);
-        } else {
-            dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
-            
-            // Draw line
-            dc.drawLine(x, y + yCenter * 0.8, x, y - yCenter * 0.7);
-        }    
-        
-        var slotIndexLeft = 0;
-        var slotIndexRight = 0;
-        var limitLeft = mLeftSlots.size();
-        var limitRight = mRightSlots.size();
-
-        if (mUpdateCountLeft / mUpdatesPerSlot >= mUpdateSlotCount) {
-            slotIndexLeft = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
-        } else {
-            limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
-        }
-
-        if (mUpdateCountRight / mUpdatesPerSlot >= mUpdateSlotCount) {
-            slotIndexLeft = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
-        } else {
-            limitRight = mUpdateCountRight / mUpdatesPerSlot;
-        }
-
-        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
-        drawTrendLine(dc, x + xCenter * 0.1, y + yCenter * 0.7, mRightSlots, slotIndexRight, limitRight);
-    }
+     }
     
     hidden function drawTrendLine(dc, x, y, values, startIndex, limit) {
         if (values.size() == 0) {
             return;
         }
         
-        values[0] *= 1.0;
+        var index = startIndex % mUpdateSlotCount;
+        values[index] *= 1.0;
         
-        var min = values[0];
-        var max = values[0];
+        var min = values[index];
+        var max = values[index];
         
         
         for (var i = 1; i < limit; ++i) {
-            values[i] *= 1.0;
-            if (values[i] < min) {
-                min = values[i];
+            index = (i + startIndex) % mUpdateSlotCount;
+            values[index] *= 1.0;
+            if (values[index] < min) {
+                min = values[index];
             }
-            if (values[i] > max) {
-                max = values[i];
+            if (values[index] > max) {
+                max = values[index];
             }
         }
         

@@ -38,13 +38,7 @@ class RunScribeDataFieldApp extends App.AppBase {
     }
     
     function getInitialView() {
-        var lrRecording = getProperty("lrmetrics");
-        var recordedChannelCount = 1;
-        if (lrRecording) {
-            recordedChannelCount = 2;
-        }
-
-        mDataField = new RunScribeDataField(mScreenShape, mScreenHeight, recordedChannelCount);
+        mDataField = new RunScribeDataField(mScreenShape, mScreenHeight);
         
         return [mDataField];
     }

@@ -81,7 +81,6 @@ class RunScribeDataField extends Ui.DataField {
         }
         
         onSettingsChanged();        
-
     }
     
     function onTimerStart() {
@@ -114,9 +113,19 @@ class RunScribeDataField extends Ui.DataField {
         mMesgPeriod = 8192 >> antRate;        
         
         if (mFieldLeft == null && mFieldRight == null) {
-            mMetricType = app.getProperty("typeMetric");
+            var metricType = app.getProperty("typeMetric");
+            if (mMetricType != metricType) {
+                mMetricType = metricType;
+                mUpdateCountLeft = 0;
+                mUpdateCountRight = 0;
+            }
+        }
+        
+        var updatesPerSlot = app.getProperty("trendLineInterval");
+        if (mUpdatesPerSlot != updatesPerSlot) {
+            mUpdatesPerSlot = updatesPerSlot;
             mUpdateCountLeft = 0;
-            mUpdateCountRight = 0;
+            mUpdateCountRight = 0;            
         }
         
         mUpdateLayout = 1;

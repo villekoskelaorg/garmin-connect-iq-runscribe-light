@@ -14,6 +14,16 @@
         </settingConfig>
     </setting>
 
+    <setting propertyKey="@Properties.trendLineInterval" title="@Strings.trend_line_interval">
+        <settingConfig type="list">
+            <listEntry value="1">@Strings.sec1</listEntry>
+            <listEntry value="2">@Strings.sec2</listEntry>
+            <listEntry value="5">@Strings.sec5</listEntry>
+            <listEntry value="10">@Strings.sec10</listEntry>
+            <listEntry value="20">@Strings.sec20</listEntry>
+        </settingConfig>
+    </setting>
+    
     <setting propertyKey="@Properties.antRate" title="@Strings.antRate">
         <settingConfig type="list">
             <listEntry value="0">@Strings.Hz4</listEntry>

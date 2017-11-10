@@ -3,13 +3,20 @@
     <string id="app_version_title">App Version</string>
 
     <string id="first_metric_label">Metric Type</string>
+    <string id="trend_line_interval">Trendline Update Interval</string>
     
     <string id="antRate">ANT Message Rate</string>
     
     <string id="Hz4">4Hz</string>
     <string id="Hz8">8Hz</string>
     <string id="Hz16">16Hz</string>
-    
+
+    <string id="sec1">1 sec</string>
+    <string id="sec2">2 sec</string>
+    <string id="sec5">5 sec</string>    
+    <string id="sec10">10 sec</string>    
+    <string id="sec20">20 sec</string>    
+
     <string id="none">None</string>
 
     <!-- Metrics labels for FIT file -->

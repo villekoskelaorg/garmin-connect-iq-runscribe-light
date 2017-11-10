@@ -57,10 +57,10 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mFieldLeft;
     hidden var mFieldRight;
 
-	hidden var mUpdateCountLeft = 0;
-	hidden var mUpdateCountRight = 0;
-	hidden var mUpdatesPerSlot = 5;
-	hidden var mUpdateSlotCount = 15;
+    hidden var mUpdateCountLeft = 0;
+    hidden var mUpdateCountRight = 0;
+    hidden var mUpdatesPerSlot = 5;
+    hidden var mUpdateSlotCount = 15;
     
     hidden var mLeftSlots;
     hidden var mRightSlots;
@@ -76,30 +76,36 @@ class RunScribeDataField extends Ui.DataField {
         mRightSlots = [];
         
         for (var i = 0; i < mUpdateSlotCount; ++i) {
-        	mLeftSlots.add(0.0);
-        	mRightSlots.add(0.0);
+            mLeftSlots.add(0.0);
+            mRightSlots.add(0.0);
         }
         
         onSettingsChanged();        
 
-        var d = {};
-        var units = "units";
-		
-		var metricName = getMetricName(mMetricType);
-
-		if (mMetricType == 1 || mMetricType == 2) {
-        	d[units] = "G";
-       	} else if (mMetricType == 4) {
-       		d[units] = "D";
-       	} else if (mMetricType == 5) {
-       		d[units] = "%";
-       	} else if (mMetricType == 6) {
-       		d[units] = "ms";
-       	}      
-       	
-        mFieldLeft = createField(metricName + "_Left", mMetricType - 1, Fit.DATA_TYPE_FLOAT, d);
-        mFieldRight = createField(metricName + "_Right", mMetricType - 1 + 6, Fit.DATA_TYPE_FLOAT, d);
     }
+    
+    function onTimerStart() {
+        if (mFieldLeft == null && mFieldRight == null) {
+            var d = {};
+            var units = "units";
+            
+            var metricName = getMetricName(mMetricType);
+    
+            if (mMetricType == 1 || mMetricType == 2) {
+                d[units] = "G";
+               } else if (mMetricType == 4) {
+                   d[units] = "D";
+               } else if (mMetricType == 5) {
+                   d[units] = "%";
+               } else if (mMetricType == 6) {
+                   d[units] = "ms";
+               }      
+               
+            mFieldLeft = createField(metricName + "_Left", mMetricType - 1, Fit.DATA_TYPE_FLOAT, d);
+            mFieldRight = createField(metricName + "_Right", mMetricType - 1 + 6, Fit.DATA_TYPE_FLOAT, d);
+        }        
+    }
+    
     
     function onSettingsChanged() {
         var app = App.getApp();
@@ -107,75 +113,79 @@ class RunScribeDataField extends Ui.DataField {
         var antRate = app.getProperty("antRate");
         mMesgPeriod = 8192 >> antRate;        
         
-        mMetricType = app.getProperty("tM1");
-
+        if (mFieldLeft == null && mFieldRight == null) {
+            mMetricType = app.getProperty("typeMetric");
+            mUpdateCountLeft = 0;
+            mUpdateCountRight = 0;
+        }
+        
         mUpdateLayout = 1;
     }
     
     function compute(info) {
     
-    	var slotIndex = 0;
-    	var updateOffset = 0.0;
- 		var value = 0.0;
+        var slotIndex = 0;
+        var updateOffset = 0.0;
+         var value = 0.0;
  
         if (mSensorLeft == null || !mSensorLeft.isChannelOpen) {
             if (mSensorLeft != null) {
                 mSensorLeft = null;
             } else {
-	            try {
-	                mSensorLeft = new RunScribeSensor(11, 62, mMesgPeriod);
-	            } catch(e) {
-	                mSensorLeft = null;
-	            }
-	       }
+                try {
+                    mSensorLeft = new RunScribeSensor(11, 62, mMesgPeriod);
+                } catch(e) {
+                    mSensorLeft = null;
+                }
+           }
         } else {
 
             ++mSensorLeft.idleTime;
             if (mSensorLeft.idleTime > 10) {
                 mSensorLeft.closeChannel();
             }
-        	
-    		slotIndex = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;
-    		updateOffset = (mUpdateCountLeft % mUpdatesPerSlot) * 1.0;
-	    	++mUpdateCountLeft;
-        	
-        	value = getMetricValue(mMetricType, mSensorLeft);
-        	mLeftSlots[slotIndex] = mLeftSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
-        	mLeftSlots[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
-        	
-            mFieldLeft.setData(value);
+            
+            slotIndex = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;
+            updateOffset = (mUpdateCountLeft % mUpdatesPerSlot) * 1.0;
+            ++mUpdateCountLeft;
+            
+            value = getMetricValue(mMetricType, mSensorLeft);
+            mLeftSlots[slotIndex] = mLeftSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+            mLeftSlots[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
+            
+            if (mFieldLeft != null) {
+                mFieldLeft.setData(value);
+            }
         }
         
         if (mSensorRight == null || !mSensorRight.isChannelOpen) {
             if (mSensorRight != null) {
                 mSensorRight = null;
             } else {
-	            try {
-	                mSensorRight = new RunScribeSensor(12, 64, mMesgPeriod);
-	            } catch(e) {
-	                mSensorRight = null;
-	            }
+                try {
+                    mSensorRight = new RunScribeSensor(12, 64, mMesgPeriod);
+                } catch(e) {
+                    mSensorRight = null;
+                }
             }
         } else {
 
             ++mSensorRight.idleTime;
-            if (mSensorRight.idleTime > 7) {
+            if (mSensorRight.idleTime > 8) {
                 mSensorRight.closeChannel();
             }
             
-    		slotIndex = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;
-    		updateOffset = (mUpdateCountRight % mUpdatesPerSlot) * 1.0;
-	    	++mUpdateCountRight;
+            slotIndex = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;
+            updateOffset = (mUpdateCountRight % mUpdatesPerSlot) * 1.0;
+            ++mUpdateCountRight;
             
-        	value = getMetricValue(mMetricType, mSensorRight) * 1.0;
-        	mRightSlots[slotIndex] = mRightSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
-        	mRightSlots[slotIndex] = mRightSlots[slotIndex] + ((value * 1.0) / (updateOffset + 1.0));
-        	
-        	System.print("Value: " + value);
-        	System.print("AVG: " + mRightSlots[slotIndex]);
-        	
-            mFieldRight.setData(value);
-
+            value = getMetricValue(mMetricType, mSensorRight) * 1.0;
+            mRightSlots[slotIndex] = mRightSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+            mRightSlots[slotIndex] = mRightSlots[slotIndex] + ((value * 1.0) / (updateOffset + 1.0));
+            
+            if (mFieldRight != null) {
+                mFieldRight.setData(value);
+            }
         }
     }
 
@@ -183,7 +193,7 @@ class RunScribeDataField extends Ui.DataField {
         var width = dc.getWidth();
         var height = dc.getHeight();
         
-       	if (height < mScreenHeight) {
+           if (height < mScreenHeight) {
         }
         
         xCenter = width / 2;
@@ -249,8 +259,8 @@ class RunScribeDataField extends Ui.DataField {
         
     hidden function getMetric(metricType, sensor) {
         if (sensor != null) {
-        	var value = getMetricValue(metricType, sensor);
-        	
+            var value = getMetricValue(metricType, sensor);
+            
             if (metricType == 3 || metricType == 6) {
                 return value.format("%d");
             }
@@ -363,15 +373,15 @@ class RunScribeDataField extends Ui.DataField {
         var limitRight = mRightSlots.size();
 
         if (mUpdateCountLeft / mUpdatesPerSlot >= mUpdateSlotCount) {
-        	slotIndexLeft = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
+            slotIndexLeft = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
         } else {
-        	limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
+            limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
         }
 
         if (mUpdateCountRight / mUpdatesPerSlot >= mUpdateSlotCount) {
-        	slotIndexLeft = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
+            slotIndexLeft = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
         } else {
-        	limitRight = mUpdateCountRight / mUpdatesPerSlot;
+            limitRight = mUpdateCountRight / mUpdatesPerSlot;
         }
 
         drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, mLeftSlots, slotIndexLeft, limitLeft);

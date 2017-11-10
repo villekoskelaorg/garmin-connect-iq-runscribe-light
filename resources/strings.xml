@@ -2,10 +2,7 @@
     <string id="AppName">RunScribe Beta</string>
     <string id="app_version_title">App Version</string>
 
-    <string id="first_metric_label">First Metric</string>
-    <string id="second_metric_label">Second Metric</string>
-    <string id="third_metric_label">Third Metric</string>
-    <string id="fourth_metric_label">Fourth Metric</string>
+    <string id="first_metric_label">Metric Type</string>
     
     <string id="antRate">ANT Message Rate</string>
     

@@ -3,7 +3,7 @@
         	<settingConfig type="alphaNumeric" readonly="true" />
     	</setting>
     
-    <setting propertyKey="@Properties.tM1" title="@Strings.first_metric_label">
+    <setting propertyKey="@Properties.typeMetric" title="@Strings.first_metric_label">
         <settingConfig type="list">
             <listEntry value="1">@Strings.impact_gs_label</listEntry>
             <listEntry value="2">@Strings.braking_gs_label</listEntry>

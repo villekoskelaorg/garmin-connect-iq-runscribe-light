@@ -46,7 +46,7 @@ class RunScribeSensor extends Ant.GenericChannel {
     //  Max Pronation Velocity    0 to 2046         2       deg/sec     10 bits
     //                                                                  56 bits
 
-    var contact_time = 0;
+    var contact_time = 320;
     var flight_ratio = 0.0;
     var footstrike_type = 0;
     var impact_gs = 0.0;
@@ -75,7 +75,7 @@ class RunScribeSensor extends Ant.GenericChannel {
         );
         
         isChannelOpen = GenericChannel.open();
-        searching = 1;
+        searching = 0;
         idleTime = 0;
     }
     

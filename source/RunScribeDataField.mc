@@ -39,6 +39,7 @@ class RunScribeDataField extends Ui.DataField {
     // Font values
     hidden var mDataFont;
     hidden var mDataFontHeight;
+    hidden var mMetricNameFontHeight;
     
     var mSensorLeft;
     var mSensorRight;
@@ -207,19 +208,15 @@ class RunScribeDataField extends Ui.DataField {
         mMetricValueOffsetX = dc.getTextWidthInPixels(" ", Gfx.FONT_XTINY) + 2;
 
         // Compute data width/height for horizintal layouts
-        var metricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
+        mMetricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
         width *= 2.0;
 
-        mDataFont = selectFont(dc, width * 0.2225, height - metricNameFontHeight, "00.0-");
+        mDataFont = selectFont(dc, width * 0.2225, height - mMetricNameFontHeight, "00.0-");
             
         mDataFontHeight = dc.getFontHeight(mDataFont);    
             
-        mMetricTitleY = -(mDataFontHeight + metricNameFontHeight) * 0.5;
-        if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
-            mMetricTitleY *= 1.1;
-        } 
-        
-        mMetricValueY = mMetricTitleY + metricNameFontHeight;
+        mMetricTitleY = -(yCenter);
+        mMetricValueY = -mDataFontHeight * 0.5;
         
         mUpdateLayout = 0;
     }
@@ -362,6 +359,12 @@ class RunScribeDataField extends Ui.DataField {
          
         dc.drawText(x, y + mMetricTitleY, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
 
+        dc.drawText(x - xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 320, Gfx.TEXT_JUSTIFY_RIGHT);
+        dc.drawText(x - xCenter * 0.4, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 321, Gfx.TEXT_JUSTIFY_LEFT);
+
+        dc.drawText(x + xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 324, Gfx.TEXT_JUSTIFY_LEFT);
+        dc.drawText(x + xCenter * 0.4, y - yCenter * 0.65, Gfx.FONT_MEDIUM, 322, Gfx.TEXT_JUSTIFY_RIGHT);
+
         if (metricType == 7) {
             // Power metric presents a single value
             dc.drawText(x, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_CENTER);
@@ -370,7 +373,48 @@ class RunScribeDataField extends Ui.DataField {
             dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
-            dc.drawLine(x, y + mMetricValueY, x, y + mMetricValueY + mDataFontHeight);
+            dc.drawLine(x, y + yCenter * 0.8, x, y - yCenter * 0.7);
         }    
+        
+        var values = [300, 305, 325, 320, 312, 320, 315, 310, 305, 306, 310, 312, 320, 325, 326];
+        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, values);
+        
+        var values2 = [330, 326, 325, 320, 318, 326, 325, 330, 325, 326, 320, 316, 321, 322, 329];
+        drawTrendLine(dc, x + xCenter * 0.15, y + yCenter * 0.7, values2);
+        
     }
+    
+    hidden function drawTrendLine(dc, x, y, values) {
+        if (values.size() == 0) {
+            return;
+        }
+        
+        values[0] *= 1.0;
+        
+        var min = values[0];
+        var max = values[0];
+        
+        for (var i = 1; i < values.size(); ++i) {
+            values[i] *= 1.0;
+            if (values[i] < min) {
+                min = values[i];
+            }
+            if (values[i] > max) {
+                max = values[i];
+            }
+        }
+        
+        var delta = max - min;
+        if (delta == 0) {
+            delta = 1;
+        }
+        
+        for (var i = 0; i < values.size() - 1; ++i) {
+            var start = (values[i] - min) / delta;
+            var end = (values[i + 1] - min) / delta;
+            
+            dc.drawLine(x + (xCenter / 24.0) * i, y - yCenter * 0.3 * start, x + (xCenter / 24.0) * (i + 1), y - yCenter * 0.3 * end);
+        }        
+    }
+    
 }

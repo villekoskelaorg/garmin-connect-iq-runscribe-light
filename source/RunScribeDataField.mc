@@ -42,6 +42,13 @@ class RunScribeDataField extends Ui.DataField {
     // Font values
     hidden var mDataFont;
     hidden var mDataFontHeight;
+    
+    hidden var mCurrentLapFont;
+    hidden var mCurrentLapFontHeight;
+    
+    hidden var mPreviousLapFont;
+    hidden var mPreviousLapFontHeight;
+    
     hidden var mMetricNameFontHeight;
     
     hidden var mScreenShape;
@@ -232,19 +239,23 @@ class RunScribeDataField extends Ui.DataField {
         var width = dc.getWidth();
         var height = dc.getHeight();
         
-        
         xCenter = width / 2;
         yCenter = height / 2;
-                
+                     
         mMetricValueOffsetX = dc.getTextWidthInPixels(" ", Gfx.FONT_XTINY) + 2;
 
         // Compute data width/height for horizintal layouts
         mMetricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
-        width *= 2.0;
 
-        mDataFont = selectFont(dc, width * 0.2225, height - mMetricNameFontHeight, "00.0-");
+        mDataFont = selectFont(dc, width * 0.45, height, "00.0-");
             
         mDataFontHeight = dc.getFontHeight(mDataFont);    
+            
+        mCurrentLapFont = selectFont(dc, width * 0.2, height, "00.0");
+        mCurrentLapFontHeight = dc.getFontHeight(mCurrentLapFont);
+
+        mPreviousLapFont = selectFont(dc, width * 0.15, height, "00.0");
+        mPreviousLapFontHeight = dc.getFontHeight(mPreviousLapFont);
             
         mMetricValueY = -mDataFontHeight * 0.5;
         
@@ -351,20 +362,7 @@ class RunScribeDataField extends Ui.DataField {
 
         // Update status
         if (mSensorLeft != null && mSensorRight != null && (mSensorRight.searching == 0 || mSensorLeft.searching == 0)) {
-            
-            var met1x, met1y, met2x = 0, met2y = 0, met3x = 0, met3y = 0, met4x = 0, met4y = 0;
-            
-            var yOffset = yCenter * 0.55;
-            var xOffset = xCenter * 0.45;
-        
-            if (mScreenShape == System.SCREEN_SHAPE_SEMI_ROUND) {
-                yOffset *= 1.15;
-            }
-        
-            met1x = xCenter;
-            met1y = yCenter;
-            
-            drawMetricOffset(dc, met1x, met1y, mMetricType);         
+            drawMetricOffset(dc, xCenter, yCenter, mMetricType);         
         } else {
             var message = "Searching(1.27)...";
             if (mSensorLeft == null || mSensorRight == null) {
@@ -380,10 +378,10 @@ class RunScribeDataField extends Ui.DataField {
         var metricLeft = getMetric(metricType, mSensorLeft);
         var metricRight = getMetric(metricType, mSensorRight);
 
-        var leftCurrentLap = mLeftCurrentLap.format("%.1f");
-        var rightCurrentLap = mRightCurrentLap.format("%.1f");
-        var leftPreviousLap = mLeftPreviousLap.format("%.1f");
-        var rightPreviousLap = mRightPreviousLap.format("%.1f");
+        var leftCurrentLap = (mLeftCurrentLap).format("%.1f");
+        var rightCurrentLap = (mRightCurrentLap).format("%.1f");
+        var leftPreviousLap = (mLeftPreviousLap).format("%.1f");
+        var rightPreviousLap = (mRightPreviousLap).format("%.1f");
 
         if (metricType == 3 || metricType == 6) {
             leftCurrentLap = mLeftCurrentLap.format("%d");
@@ -394,18 +392,30 @@ class RunScribeDataField extends Ui.DataField {
 
         dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
         dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+
+        var yDelta = yCenter;
+
+        if (mScreenShape != System.SCREEN_SHAPE_SEMI_ROUND) {
+            yDelta *= 0.85;
+        }   
+        
+        var xMargin = 0.04;
+        if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
+           xMargin = 0.025;
+        }
         
         // Draw line
-        dc.drawLine(x, y + yCenter * 0.8, x, y - yCenter * 0.7);
+        dc.drawLine(x, y + yDelta * 0.8, x, y - yDelta * 0.7);
          
         if (dc.getHeight() == mScreenHeight) {
-            dc.drawText(x, y - yCenter * 0.95, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
+        
+            dc.drawText(x, y - yDelta * 0.98, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
 	
-	        dc.drawText(x - xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, leftPreviousLap, Gfx.TEXT_JUSTIFY_RIGHT);
-	        dc.drawText(x - xCenter * 0.4, y - yCenter * 0.68, Gfx.FONT_NUMBER_MILD, leftCurrentLap, Gfx.TEXT_JUSTIFY_LEFT);
+	        dc.drawText(x - xCenter * (0.48 + xMargin), y - yDelta * 0.48 - mPreviousLapFontHeight * 0.5, mPreviousLapFont, leftPreviousLap, Gfx.TEXT_JUSTIFY_RIGHT);
+	        dc.drawText(x - xCenter * (0.48 - xMargin), y - yDelta * 0.48 - mCurrentLapFontHeight * 0.5, mCurrentLapFont, leftCurrentLap, Gfx.TEXT_JUSTIFY_LEFT);
 	
-	        dc.drawText(x + xCenter * 0.4, y - yCenter * 0.68, Gfx.FONT_NUMBER_MILD, rightCurrentLap, Gfx.TEXT_JUSTIFY_RIGHT);
-	        dc.drawText(x + xCenter * 0.5, y - yCenter * 0.65, Gfx.FONT_MEDIUM, rightPreviousLap, Gfx.TEXT_JUSTIFY_LEFT);
+	        dc.drawText(x + xCenter * (0.48 - xMargin), y - yDelta * 0.48 - mCurrentLapFontHeight * 0.5 , mCurrentLapFont, rightCurrentLap, Gfx.TEXT_JUSTIFY_RIGHT);
+	        dc.drawText(x + xCenter * (0.48 + xMargin), y - yDelta * 0.48 - mPreviousLapFontHeight * 0.5, mPreviousLapFont, rightPreviousLap, Gfx.TEXT_JUSTIFY_LEFT);
 	
 	        var slotIndexLeft = 0;
 	        var slotIndexRight = 0;
@@ -424,8 +434,8 @@ class RunScribeDataField extends Ui.DataField {
 	            limitRight = mUpdateCountRight / mUpdatesPerSlot;
 	        }
 	
-	        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
-	        drawTrendLine(dc, x + xCenter * 0.1, y + yCenter * 0.7, mRightSlots, slotIndexRight, limitRight);
+	        drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
+	        drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, mRightSlots, slotIndexRight, limitRight);
         
         }
          

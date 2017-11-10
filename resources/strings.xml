@@ -36,7 +36,6 @@
     <string id="pronation_label">Pronation Excursion</string>
     <string id="flight_ratio_label">Flight Ratio</string>
     <string id="contact_time_label">Contact Time</string>
-    <string id="power_label">RunScribe Power</string>
 
     <!-- Metrics Units -->
     <string id="impact_braking_gs_units">G</string>

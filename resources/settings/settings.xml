@@ -11,7 +11,6 @@
             <listEntry value="4">@Strings.pronation_label</listEntry>
             <listEntry value="5">@Strings.flight_ratio_label</listEntry>
             <listEntry value="6">@Strings.contact_time_label</listEntry>
-            <listEntry value="7">@Strings.power_label</listEntry>
         </settingConfig>
     </setting>
 

@@ -75,7 +75,7 @@ class RunScribeSensor extends Ant.GenericChannel {
         );
         
         isChannelOpen = GenericChannel.open();
-        searching = 0;
+        searching = 1;
         idleTime = 0;
     }
     

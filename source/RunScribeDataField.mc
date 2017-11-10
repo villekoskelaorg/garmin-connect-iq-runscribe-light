@@ -28,8 +28,12 @@ using Toybox.Graphics as Gfx;
 using Toybox.FitContributor as Fit;
 
 class RunScribeDataField extends Ui.DataField {
+
+    var mSensorLeft;
+    var mSensorRight;
     
-    hidden var mMetric1Type; // 1 - Impact GS, 2 - Braking GS, 3 - FS Type, 4 - Pronation, 5 - Flight Ratio, 6 - Contact Time
+    hidden var mMetricType; // 1 - Impact GS, 2 - Braking GS, 3 - FS Type, 4 - Pronation, 5 - Flight Ratio, 6 - Contact Time
+    hidden var mMesgPeriod;
 
     // Common
     hidden var mMetricTitleY;
@@ -41,9 +45,6 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mDataFontHeight;
     hidden var mMetricNameFontHeight;
     
-    var mSensorLeft;
-    var mSensorRight;
-    
     hidden var mScreenShape;
     hidden var mScreenHeight;
     
@@ -53,27 +54,16 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mUpdateLayout = 0;
     
     // FIT Contributions variables
-    hidden var mCurrentBGFieldLeft;
-    /*
-    hidden var mCurrentIGFieldLeft;
-    hidden var mCurrentFSFieldLeft;
-    hidden var mCurrentPronationFieldLeft;
-    hidden var mCurrentFlightFieldLeft;
-    hidden var mCurrentGCTFieldLeft;
-	*/
-    hidden var mCurrentBGFieldRight;
-    /*
-    hidden var mCurrentIGFieldRight;
-    hidden var mCurrentFSFieldRight;
-    hidden var mCurrentPronationFieldRight;
-    hidden var mCurrentFlightFieldRight;
-    hidden var mCurrentGCTFieldRight;    
+    hidden var mFieldLeft;
+    hidden var mFieldRight;
 
-    hidden var mCurrentPowerField;
-    */
-    hidden var mMesgPeriod;
+	hidden var mUpdateCountLeft = 0;
+	hidden var mUpdateCountRight = 0;
+	hidden var mUpdatesPerSlot = 5;
+	hidden var mUpdateSlotCount = 15;
     
-    
+    hidden var mLeftSlots;
+    hidden var mRightSlots;
     
     // Constructor
     function initialize(screenShape, screenHeight) {
@@ -82,36 +72,33 @@ class RunScribeDataField extends Ui.DataField {
         mScreenShape = screenShape;
         mScreenHeight = screenHeight;
         
+        mLeftSlots = [];
+        mRightSlots = [];
+        
+        for (var i = 0; i < mUpdateSlotCount; ++i) {
+        	mLeftSlots.add(0.0);
+        	mRightSlots.add(0.0);
+        }
+        
         onSettingsChanged();        
 
         var d = {};
         var units = "units";
+		
+		var metricName = getMetricName(mMetricType);
 
-        //mCurrentFSFieldLeft = createField("FS_L", 2, Fit.DATA_TYPE_SINT8, d);
-        //mCurrentFSFieldRight = createField("FS_R", 8, Fit.DATA_TYPE_SINT8, d);
-
-        d[units] = "G";       
-        mCurrentBGFieldLeft = createField("BG_L", 0, Fit.DATA_TYPE_FLOAT, d);
-        //mCurrentIGFieldLeft = createField("IG_L", 1, Fit.DATA_TYPE_FLOAT, d);
-        mCurrentBGFieldRight = createField("BG_R", 6, Fit.DATA_TYPE_FLOAT, d);
-        //mCurrentIGFieldRight = createField("IG_R", 7, Fit.DATA_TYPE_FLOAT, d);
-        
-        /*
-        d[units] = "D";        
-        mCurrentPronationFieldLeft = createField("P_L", 3, Fit.DATA_TYPE_SINT16, d);
-        mCurrentPronationFieldRight = createField("P_R", 9, Fit.DATA_TYPE_SINT16, d);
-        
-        d[units] = "%";
-        mCurrentFlightFieldLeft = createField("FR_L", 4, Fit.DATA_TYPE_SINT8, d);
-        mCurrentFlightFieldRight = createField("FR_R", 10, Fit.DATA_TYPE_SINT8, d);
-       
-        d[units] = "ms";
-        mCurrentGCTFieldLeft = createField("GCT_L", 5, Fit.DATA_TYPE_SINT16, d);
-        mCurrentGCTFieldRight = createField("GCT_R", 11, Fit.DATA_TYPE_SINT16, d);
-        
-        d[units] = "W";
-        mCurrentPowerField = createField("Power", 18, Fit.DATA_TYPE_SINT16, d);
-        */
+		if (mMetricType == 1 || mMetricType == 2) {
+        	d[units] = "G";
+       	} else if (mMetricType == 4) {
+       		d[units] = "D";
+       	} else if (mMetricType == 5) {
+       		d[units] = "%";
+       	} else if (mMetricType == 6) {
+       		d[units] = "ms";
+       	}      
+       	
+        mFieldLeft = createField(metricName + "_Left", mMetricType - 1, Fit.DATA_TYPE_FLOAT, d);
+        mFieldRight = createField(metricName + "_Right", mMetricType - 1 + 6, Fit.DATA_TYPE_FLOAT, d);
     }
     
     function onSettingsChanged() {
@@ -120,13 +107,17 @@ class RunScribeDataField extends Ui.DataField {
         var antRate = app.getProperty("antRate");
         mMesgPeriod = 8192 >> antRate;        
         
-        mMetric1Type = app.getProperty("tM1");
+        mMetricType = app.getProperty("tM1");
 
         mUpdateLayout = 1;
     }
     
     function compute(info) {
     
+    	var slotIndex = 0;
+    	var updateOffset = 0.0;
+ 		var value = 0.0;
+ 
         if (mSensorLeft == null || !mSensorLeft.isChannelOpen) {
             if (mSensorLeft != null) {
                 mSensorLeft = null;
@@ -141,29 +132,18 @@ class RunScribeDataField extends Ui.DataField {
 
             ++mSensorLeft.idleTime;
             if (mSensorLeft.idleTime > 10) {
-                    mSensorLeft.closeChannel();
+                mSensorLeft.closeChannel();
             }
-        
-            var braking = mSensorLeft.braking_gs;
-            /*
-            var impact = mSensorLeft.impact_gs;
-            var footstrike = mSensorLeft.footstrike_type;
-            var pronation = mSensorLeft.pronation_excursion_fs_mp;
-            var flight = mSensorLeft.flight_ratio;
-            var contact = mSensorLeft.contact_time;
-            */                
-            mCurrentBGFieldLeft.setData(braking);
-            /*
-            mCurrentIGFieldLeft.setData(impact);
-            mCurrentFSFieldLeft.setData(footstrike);
-            mCurrentPronationFieldLeft.setData(pronation);
-            mCurrentFlightFieldLeft.setData(flight);
-            mCurrentGCTFieldLeft.setData(contact);
-            
-            if (mSensorRight != null) {
-                mCurrentPowerField.setData((mSensorLeft.power + mSensorRight.power) * 0.5);
-            }
-            */
+        	
+    		slotIndex = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;
+    		updateOffset = (mUpdateCountLeft % mUpdatesPerSlot) * 1.0;
+	    	++mUpdateCountLeft;
+        	
+        	value = getMetricValue(mMetricType, mSensorLeft);
+        	mLeftSlots[slotIndex] = mLeftSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+        	mLeftSlots[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
+        	
+            mFieldLeft.setData(value);
         }
         
         if (mSensorRight == null || !mSensorRight.isChannelOpen) {
@@ -183,15 +163,19 @@ class RunScribeDataField extends Ui.DataField {
                 mSensorRight.closeChannel();
             }
             
-            // Separate left / right recording
-            mCurrentBGFieldRight.setData(mSensorRight.braking_gs);
-            /*
-            mCurrentIGFieldRight.setData(mSensorRight.impact_gs);
-            mCurrentFSFieldRight.setData(mSensorRight.footstrike_type);
-            mCurrentPronationFieldRight.setData(mSensorRight.pronation_excursion_fs_mp);
-            mCurrentFlightFieldRight.setData(mSensorRight.flight_ratio);
-            mCurrentGCTFieldRight.setData(mSensorRight.contact_time);
-            */
+    		slotIndex = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;
+    		updateOffset = (mUpdateCountRight % mUpdatesPerSlot) * 1.0;
+	    	++mUpdateCountRight;
+            
+        	value = getMetricValue(mMetricType, mSensorRight) * 1.0;
+        	mRightSlots[slotIndex] = mRightSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+        	mRightSlots[slotIndex] = mRightSlots[slotIndex] + ((value * 1.0) / (updateOffset + 1.0));
+        	
+        	System.print("Value: " + value);
+        	System.print("AVG: " + mRightSlots[slotIndex]);
+        	
+            mFieldRight.setData(value);
+
         }
     }
 
@@ -258,9 +242,6 @@ class RunScribeDataField extends Ui.DataField {
         } 
         if (metricType == 6) {
             return "ContactTime";
-        } 
-        if (metricType == 7) {
-            return "RSPower";
         }
         
         return null;
@@ -337,7 +318,7 @@ class RunScribeDataField extends Ui.DataField {
             met1x = xCenter;
             met1y = yCenter;
             
-            drawMetricOffset(dc, met1x, met1y, mMetric1Type);         
+            drawMetricOffset(dc, met1x, met1y, mMetricType);         
         } else {
             var message = "Searching(1.27)...";
             if (mSensorLeft == null || mSensorRight == null) {
@@ -376,15 +357,28 @@ class RunScribeDataField extends Ui.DataField {
             dc.drawLine(x, y + yCenter * 0.8, x, y - yCenter * 0.7);
         }    
         
-        var values = [300, 305, 325, 320, 312, 320, 315, 310, 305, 306, 310, 312, 320, 325, 326];
-        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, values);
-        
-        var values2 = [330, 326, 325, 320, 318, 326, 325, 330, 325, 326, 320, 316, 321, 322, 329];
-        drawTrendLine(dc, x + xCenter * 0.15, y + yCenter * 0.7, values2);
-        
+        var slotIndexLeft = 0;
+        var slotIndexRight = 0;
+        var limitLeft = mLeftSlots.size();
+        var limitRight = mRightSlots.size();
+
+        if (mUpdateCountLeft / mUpdatesPerSlot >= mUpdateSlotCount) {
+        	slotIndexLeft = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
+        } else {
+        	limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
+        }
+
+        if (mUpdateCountRight / mUpdatesPerSlot >= mUpdateSlotCount) {
+        	slotIndexLeft = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
+        } else {
+        	limitRight = mUpdateCountRight / mUpdatesPerSlot;
+        }
+
+        drawTrendLine(dc, x - xCenter * 0.7, y + yCenter * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
+        drawTrendLine(dc, x + xCenter * 0.1, y + yCenter * 0.7, mRightSlots, slotIndexRight, limitRight);
     }
     
-    hidden function drawTrendLine(dc, x, y, values) {
+    hidden function drawTrendLine(dc, x, y, values, startIndex, limit) {
         if (values.size() == 0) {
             return;
         }
@@ -394,7 +388,8 @@ class RunScribeDataField extends Ui.DataField {
         var min = values[0];
         var max = values[0];
         
-        for (var i = 1; i < values.size(); ++i) {
+        
+        for (var i = 1; i < limit; ++i) {
             values[i] *= 1.0;
             if (values[i] < min) {
                 min = values[i];
@@ -409,11 +404,11 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        for (var i = 0; i < values.size() - 1; ++i) {
-            var start = (values[i] - min) / delta;
-            var end = (values[i + 1] - min) / delta;
+        for (var i = 0; i < limit - 1; ++i) {
+            var start = (values[(i + startIndex) % mUpdateSlotCount] - min) / delta;
+            var end = (values[(i + 1 + startIndex) % mUpdateSlotCount] - min) / delta;
             
-            dc.drawLine(x + (xCenter / 24.0) * i, y - yCenter * 0.3 * start, x + (xCenter / 24.0) * (i + 1), y - yCenter * 0.3 * end);
+            dc.drawLine(x + (xCenter * 0.6 / (limit - 1)) * i, y - yCenter * 0.3 * start, x + (xCenter * 0.6 / (limit - 1)) * (i + 1), y - yCenter * 0.3 * end);
         }        
     }
     

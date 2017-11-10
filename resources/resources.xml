@@ -113,17 +113,6 @@
             unitLabel="@Strings.contact_time_units"
             fillColor="#FFFF00" />            
             
-        <!-- AVERAGE -->    
-            
-        <fitField id="18"
-            displayInChart="true"
-            sortOrder = "18"
-            precision="0"
-            chartTitle="@Strings.power_label"
-            dataLabel="@Strings.power_label"
-            unitLabel="@Strings.power_units"
-            fillColor="#FF9900" />
-            
             
     </fitContributions>
 </resources>

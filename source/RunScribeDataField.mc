@@ -66,18 +66,19 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mUpdateCountLeft = 0;
     hidden var mUpdateCountRight = 0;
 
-    hidden var mUpdatesPerSlot = 5;
-    hidden var mUpdateSlotCount = 16;
-
     hidden var mLapUpdateCountLeft = 0;
     hidden var mLapUpdateCountRight = 0;
+
+    hidden var mUpdatesPerValue = 5;
+    hidden var mValueCount = 16;
     
-    hidden var mLeftSlots;
-    hidden var mRightSlots;
-    hidden var mLeftCurrentLap = 0.0;
-    hidden var mRightCurrentLap = 0.0;
-    hidden var mLeftPreviousLap = 0.0;
-    hidden var mRightPreviousLap = 0.0;
+    hidden var mValuesLeft;
+    hidden var mValuesRight;
+    
+    hidden var mCurrentLapLeft = 0.0;
+    hidden var mCurrentLapRight = 0.0;
+    hidden var mPreviousLapLeft = 0.0;
+    hidden var mPreviousLapRight = 0.0;
     
     // Constructor
     function initialize(screenShape, screenHeight) {
@@ -86,12 +87,12 @@ class RunScribeDataField extends Ui.DataField {
         mScreenShape = screenShape;
         mScreenHeight = screenHeight;
         
-        mLeftSlots = [];
-        mRightSlots = [];
+        mValuesLeft = [];
+        mValuesRight = [];
         
-        for (var i = 0; i < mUpdateSlotCount; ++i) {
-            mLeftSlots.add(0.0);
-            mRightSlots.add(0.0);
+        for (var i = 0; i < mValueCount; ++i) {
+            mValuesLeft.add(0.0);
+            mValuesRight.add(0.0);
         }
         
         onSettingsChanged();        
@@ -122,8 +123,8 @@ class RunScribeDataField extends Ui.DataField {
     }
 
     function onTimerLap() {
-        mLeftPreviousLap = mLeftCurrentLap;
-        mRightPreviousLap = mRightCurrentLap;
+        mPreviousLapLeft = mCurrentLapLeft;
+        mPreviousLapRight = mCurrentLapRight;
         
         mLapUpdateCountLeft = 0;
         mLapUpdateCountRight = 0;
@@ -147,8 +148,8 @@ class RunScribeDataField extends Ui.DataField {
         }
         
         var updatesPerSlot = app.getProperty("trendLineInterval");
-        if (mUpdatesPerSlot != updatesPerSlot) {
-            mUpdatesPerSlot = updatesPerSlot;
+        if (mUpdatesPerValue != updatesPerSlot) {
+            mUpdatesPerValue = updatesPerSlot;
             mUpdateCountLeft = 0;
             mUpdateCountRight = 0;            
         }
@@ -179,19 +180,19 @@ class RunScribeDataField extends Ui.DataField {
                 mSensorLeft.closeChannel();
             }
             
-            slotIndex = (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;
-            updateOffset = (mUpdateCountLeft % mUpdatesPerSlot) * 1.0;
+            slotIndex = (mUpdateCountLeft / mUpdatesPerValue) % mValueCount;
+            updateOffset = (mUpdateCountLeft % mUpdatesPerValue) * 1.0;
             ++mUpdateCountLeft;
             
             value = getMetricValue(mMetricType, mSensorLeft);
-            mLeftSlots[slotIndex] = mLeftSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
-            mLeftSlots[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
+            mValuesLeft[slotIndex] = mValuesLeft[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+            mValuesLeft[slotIndex] += (value * 1.0) / (updateOffset + 1.0);
             
             updateOffset = mLapUpdateCountLeft * 1.0;
             ++mLapUpdateCountLeft;
 
-            mLeftCurrentLap = mLeftCurrentLap * (updateOffset / (updateOffset + 1.0));
-            mLeftCurrentLap += (value * 1.0) / (updateOffset + 1.0);
+            mCurrentLapLeft = mCurrentLapLeft * (updateOffset / (updateOffset + 1.0));
+            mCurrentLapLeft += (value * 1.0) / (updateOffset + 1.0);
             
             if (mFieldLeft != null) {
                 mFieldLeft.setData(value);
@@ -215,19 +216,19 @@ class RunScribeDataField extends Ui.DataField {
                 mSensorRight.closeChannel();
             }
             
-            slotIndex = (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;
-            updateOffset = (mUpdateCountRight % mUpdatesPerSlot) * 1.0;
+            slotIndex = (mUpdateCountRight / mUpdatesPerValue) % mValueCount;
+            updateOffset = (mUpdateCountRight % mUpdatesPerValue) * 1.0;
             ++mUpdateCountRight;
             
             value = getMetricValue(mMetricType, mSensorRight) * 1.0;
-            mRightSlots[slotIndex] = mRightSlots[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
-            mRightSlots[slotIndex] = mRightSlots[slotIndex] + ((value * 1.0) / (updateOffset + 1.0));
+            mValuesRight[slotIndex] = mValuesRight[slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+            mValuesRight[slotIndex] += ((value * 1.0) / (updateOffset + 1.0));
             
             updateOffset = mLapUpdateCountRight * 1.0;
             ++mLapUpdateCountRight;
 
-            mRightCurrentLap = mLeftCurrentLap * (updateOffset / (updateOffset + 1.0));
-            mRightCurrentLap += (value * 1.0) / (updateOffset + 1.0);
+            mCurrentLapRight = mCurrentLapRight * (updateOffset / (updateOffset + 1.0));
+            mCurrentLapRight += (value * 1.0) / (updateOffset + 1.0);
             
             if (mFieldRight != null) {
                 mFieldRight.setData(value);
@@ -307,7 +308,6 @@ class RunScribeDataField extends Ui.DataField {
     hidden function getMetric(metricType, sensor) {
         if (sensor != null) {
             var value = getMetricValue(metricType, sensor);
-            
             if (metricType == 3 || metricType == 6) {
                 return value.format("%d");
             }
@@ -378,16 +378,16 @@ class RunScribeDataField extends Ui.DataField {
         var metricLeft = getMetric(metricType, mSensorLeft);
         var metricRight = getMetric(metricType, mSensorRight);
 
-        var leftCurrentLap = (mLeftCurrentLap).format("%.1f");
-        var rightCurrentLap = (mRightCurrentLap).format("%.1f");
-        var leftPreviousLap = (mLeftPreviousLap).format("%.1f");
-        var rightPreviousLap = (mRightPreviousLap).format("%.1f");
+        var leftCurrentLap = mCurrentLapLeft.format("%.1f");
+        var rightCurrentLap = mCurrentLapRight.format("%.1f");
+        var leftPreviousLap = mPreviousLapLeft.format("%.1f");
+        var rightPreviousLap = mPreviousLapRight.format("%.1f");
 
         if (metricType == 3 || metricType == 6) {
-            leftCurrentLap = mLeftCurrentLap.format("%d");
-            rightCurrentLap = mRightCurrentLap.format("%d");
-            leftPreviousLap = mLeftPreviousLap.format("%d");
-            rightPreviousLap = mRightPreviousLap.format("%d");        
+            leftCurrentLap = mCurrentLapLeft.format("%d");
+            rightCurrentLap = mCurrentLapRight.format("%d");
+            leftPreviousLap = mPreviousLapLeft.format("%d");
+            rightPreviousLap = mPreviousLapRight.format("%d");        
         }
 
         dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
@@ -419,26 +419,24 @@ class RunScribeDataField extends Ui.DataField {
 	
 	        var slotIndexLeft = 0;
 	        var slotIndexRight = 0;
-	        var limitLeft = mLeftSlots.size() - 1;
-	        var limitRight = mRightSlots.size() - 1;
+	        var limitLeft = mValuesLeft.size() - 1;
+	        var limitRight = mValuesRight.size() - 1;
 	
-	        if (mUpdateCountLeft / mUpdatesPerSlot >= mUpdateSlotCount) {
-	            slotIndexLeft = 1 + (mUpdateCountLeft / mUpdatesPerSlot) % mUpdateSlotCount;  
+	        if (mUpdateCountLeft / mUpdatesPerValue >= mValueCount) {
+	            slotIndexLeft = 1 + (mUpdateCountLeft / mUpdatesPerValue) % mValueCount;  
 	        } else {
-	            limitLeft = mUpdateCountLeft / mUpdatesPerSlot;
+	            limitLeft = mUpdateCountLeft / mUpdatesPerValue;
 	        }
 	
-	        if (mUpdateCountRight / mUpdatesPerSlot >= mUpdateSlotCount) {
-	            slotIndexRight = 1 + (mUpdateCountRight / mUpdatesPerSlot) % mUpdateSlotCount;  
+	        if (mUpdateCountRight / mUpdatesPerValue >= mValueCount) {
+	            slotIndexRight = 1 + (mUpdateCountRight / mUpdatesPerValue) % mValueCount;  
 	        } else {
-	            limitRight = mUpdateCountRight / mUpdatesPerSlot;
+	            limitRight = mUpdateCountRight / mUpdatesPerValue;
 	        }
 	
-	        drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, mLeftSlots, slotIndexLeft, limitLeft);
-	        drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, mRightSlots, slotIndexRight, limitRight);
-        
+	        drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, mValuesLeft, slotIndexLeft, limitLeft);
+	        drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, mValuesRight, slotIndexRight, limitRight);
         }
-         
      }
     
     hidden function drawTrendLine(dc, x, y, values, startIndex, limit) {
@@ -446,15 +444,14 @@ class RunScribeDataField extends Ui.DataField {
             return;
         }
         
-        var index = startIndex % mUpdateSlotCount;
+        var index = startIndex % mValueCount;
         values[index] *= 1.0;
         
         var min = values[index];
         var max = values[index];
         
-        
         for (var i = 1; i < limit; ++i) {
-            index = (i + startIndex) % mUpdateSlotCount;
+            index = (i + startIndex) % mValueCount;
             values[index] *= 1.0;
             if (values[index] < min) {
                 min = values[index];
@@ -469,11 +466,13 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        for (var i = 0; i < limit - 1; ++i) {
-            var start = (values[(i + startIndex) % mUpdateSlotCount] - min) / delta;
-            var end = (values[(i + 1 + startIndex) % mUpdateSlotCount] - min) / delta;
+        limit -= 1; 
+        
+        for (var i = 0; i < limit; ++i) {
+            var start = (values[(i + startIndex) % mValueCount] - min) / delta;
+            var end = (values[(i + 1 + startIndex) % mValueCount] - min) / delta;
             
-            dc.drawLine(x + (xCenter * 0.6 / (limit - 1)) * i, y - yCenter * 0.3 * start, x + (xCenter * 0.6 / (limit - 1)) * (i + 1), y - yCenter * 0.3 * end);
+            dc.drawLine(x + (xCenter * 0.6 / limit) * i, y - yCenter * 0.3 * start, x + (xCenter * 0.6 / limit) * (i + 1), y - yCenter * 0.3 * end);
         }        
     }
     

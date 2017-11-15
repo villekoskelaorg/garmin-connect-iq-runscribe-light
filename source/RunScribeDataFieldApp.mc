@@ -38,21 +38,45 @@ class RunScribeDataFieldApp extends App.AppBase {
     }
     
     function getInitialView() {
-        var lrRecording = getProperty("lrmetrics");
-        var recordedChannelCount = 1;
-        if (lrRecording) {
-            recordedChannelCount = 2;
+        var sensorLeft;
+        var sensorRight;
+        
+        try {       
+            //var freq = "Freq";
+            //var period = getProperty("period");
+            
+            /*sensorLeft = new RunScribeSensor(11, getProperty("l" + freq), period);
+            sensorRight = new RunScribeSensor(12, getProperty("r" + freq), period);
+            */
+            
+            sensorLeft = new RunScribeSensor(11, 62, 8192);
+            sensorRight = new RunScribeSensor(12, 64, 8192);
+            sensorLeft.open();
+            sensorRight.open();
+        } catch(e instanceof Ant.UnableToAcquireChannelException) {
+            sensorLeft = null;
+            sensorRight = null;
         }
-
-        mDataField = new RunScribeDataField(mScreenShape, mScreenHeight, recordedChannelCount);
+        
+        var lrRecording = getProperty("lrmetrics");
+        var recordedChannelCount;
+        if (lrRecording == true) {
+        		recordedChannelCount = 2;
+        	}
+        	else {
+        		recordedChannelCount = 1;
+        	}
+        	lrRecording = null;
+        mDataField = new RunScribeDataField(sensorLeft, sensorRight, mScreenShape, mScreenHeight, recordedChannelCount);
         
         return [mDataField];
     }
     
     function onStop(state) {
-        if (mDataField.mSensor != null) {
-            mDataField.mSensor.closeChannel();
-         }
+        if (mDataField.mSensorLeft != null) {
+            mDataField.mSensorLeft.closeSensor();
+            mDataField.mSensorRight.closeSensor();
+        }
         return false;
     }
     

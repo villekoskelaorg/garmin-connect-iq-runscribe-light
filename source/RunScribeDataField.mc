@@ -317,26 +317,31 @@ class RunScribeDataField extends Ui.DataField {
     }
         
     hidden function getMetric(metricType, sensor) {
-        var floatFormat = "%.1f";
+        var data = 0.0;
         if (metricType == 1) {
-            return sensor.impact_gs.format(floatFormat);
+            data = sensor.impact_gs;
         } 
         if (metricType == 2) {
-            return sensor.braking_gs.format(floatFormat);
+            data = sensor.braking_gs;
         } 
         if (metricType == 3) {
-            return sensor.footstrike_type.format("%d");
+            data = sensor.footstrike_type;
         } 
         if (metricType == 4) {
-            return sensor.pronation_excursion_fs_mp.format(floatFormat);
+            data = sensor.pronation_excursion_fs_mp;
         } 
         if (metricType == 5) {
-            return sensor.flight_ratio.format(floatFormat);
+            data = sensor.flight_ratio;
         } 
         if (metricType == 6) {
-            return sensor.contact_time.format("%d");
+            data = sensor.contact_time;
         }
-        return "0";
+        
+        if (metricType % 3 == 0) {
+            return data.format("%d");
+        }
+        
+        return data.format("%.1f");
     }
     
     

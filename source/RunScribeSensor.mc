@@ -77,14 +77,6 @@ class RunScribeSensor extends Ant.GenericChannel {
             searching = 1;
             isChannelOpen = false;
             idleTime = 0;
-            
-            contact_time = 0;
-            flight_ratio = 0.0;
-            footstrike_type = 0;
-            impact_gs = 0.0;
-            braking_gs = 0.0;
-            pronation_excursion_fs_mp = 0.0;
-            power = 0;
         }        
     }
     
@@ -104,10 +96,11 @@ class RunScribeSensor extends Ant.GenericChannel {
 			        footstrike_type = payload[0] & 0x0F + 1;
 			        impact_gs = payload[1] / 16.0;
 			        braking_gs = payload[2] / 16.0;
-			        contact_time = ((payload[7] & 0x03) << 8) + payload[3];
-			        flight_ratio = ((((payload[7] & 0x0C) << 6) + payload[4]) - 224.0) / 8.0;
-                    power = ((payload[7] & 0x30) << 4) + payload[5];
-			        pronation_excursion_fs_mp = ((((payload[7] & 0xC0) << 2) + payload[6]) - 512.0) / 10.0;
+			        var extra = payload[7];
+			        contact_time = ((extra & 0x03) << 8) + payload[3];
+			        flight_ratio = ((((extra & 0x0C) << 6) + payload[4]) - 224.0) / 8.0;
+                    power = ((extra & 0x30) << 4) + payload[5];
+			        pronation_excursion_fs_mp = ((((extra & 0xC0) << 2) + payload[6]) - 512.0) / 10.0;
 
                     idleTime = -1;
 	            }

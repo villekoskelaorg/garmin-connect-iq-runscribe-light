@@ -6,11 +6,8 @@
 	<string id="second_metric_label">Second metric</string>
 	<string id="third_metric_label">Third metric</string>
 	<string id="fourth_metric_label">Fourth metric</string>
-	 
-	<string id="left_frequency_label">Left frequency</string>
-	<string id="right_frequency_label">Right frequency</string>
-	<string id="period">Period</string>
-	<string id="lrmetrics">L/R recording</string>
+	
+    <string id="visibleMetrics">Visible metrics</string>
 	
     <string id="antRate">ANT Message Rate</string>
     

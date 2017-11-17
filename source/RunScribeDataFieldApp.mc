@@ -38,12 +38,6 @@ class RunScribeDataFieldApp extends App.AppBase {
     }
     
     function getInitialView() {
-        var lrRecording = getProperty("lrmetrics");
-        var recordedChannelCount = 1;
-        if (lrRecording == true) {
-            recordedChannelCount = 2;
-       	}
-
         var antRate = getProperty("antRate");
         
         var sensorLeft;
@@ -58,7 +52,7 @@ class RunScribeDataFieldApp extends App.AppBase {
         }
         
         
-        mDataField = new RunScribeDataField(sensorLeft, sensorRight, mScreenShape, mScreenHeight, recordedChannelCount);
+        mDataField = new RunScribeDataField(sensorLeft, sensorRight, mScreenShape, mScreenHeight);
         return [mDataField];
     }
     

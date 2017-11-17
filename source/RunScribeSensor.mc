@@ -35,13 +35,8 @@ class RunScribeSensor extends Ant.GenericChannel {
     //  Power                   0 to 1023           1       watts       10 bits
     //  Pronation Excursion     -51.2 to +51.1      1/10    deg         10 bits
 
-    var contact_time = 0;
-    var flight_ratio = 0.0;
-    var footstrike_type = 0;
-    var impact_gs = 0.0;
-    var braking_gs = 0.0;
-    var pronation_excursion_fs_mp = 0.0;
-    var power = 0;
+    
+    var data = [0, 0, 0, 0, 0, 0, 0];
 
     // Ant channel & states
     var searching = 1;
@@ -93,14 +88,15 @@ class RunScribeSensor extends Ant.GenericChannel {
             if (idleTime >= 0) {
                 var page = (payload[0] & 0xFF);
                 if (page > 0x0F) {
-			        footstrike_type = payload[0] & 0x0F + 1;
-			        impact_gs = payload[1] / 16.0;
-			        braking_gs = payload[2] / 16.0;
-			        var extra = payload[7];
-			        contact_time = ((extra & 0x03) << 8) + payload[3];
-			        flight_ratio = ((((extra & 0x0C) << 6) + payload[4]) - 224.0) / 8.0;
-                    power = ((extra & 0x30) << 4) + payload[5];
-			        pronation_excursion_fs_mp = ((((extra & 0xC0) << 2) + payload[6]) - 512.0) / 10.0;
+                    var extra = payload[7];
+                
+                    data[0] = payload[2] / 16.0; // Braking
+			        data[1] = payload[1] / 16.0; // Impact
+                    data[2] = payload[0] & 0x0F + 1; // Footstrike
+                    data[3] = ((((extra & 0xC0) << 2) + payload[6]) - 512.0) / 10.0; // Pronation
+                    data[4] = ((((extra & 0x0C) << 6) + payload[4]) - 224.0) / 8.0; // Flight ratio
+			        data[5] = ((extra & 0x03) << 8) + payload[3]; // Contact time
+                    data[6] = ((extra & 0x30) << 4) + payload[5]; // Power
 
                     idleTime = -1;
 	            }

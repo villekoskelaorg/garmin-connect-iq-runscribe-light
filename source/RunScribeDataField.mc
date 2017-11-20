@@ -62,6 +62,24 @@ class RunScribeDataField extends Ui.DataField {
 
     hidden var mPowerContributor;
     
+    // Uber screen
+    hidden var mUpdatesPerValue = 5;
+    hidden var mValueCount = 16;
+    
+    hidden var mValues = [];
+
+    hidden var mUpdateCountLeft = 0;
+    hidden var mUpdateCountRight = 0;
+    
+    hidden var mLapUpdateCountLeft = 0;
+    hidden var mLapUpdateCountRight = 0;
+         
+    hidden var mCurrentLaps = [0.0, 0.0];
+    
+    hidden var mPreviousLapLeft = 0.0;
+    hidden var mPreviousLapRight = 0.0;
+    
+    
     // Constructor
     function initialize(sensorL, sensorR, screenShape, screenHeight) {
         DataField.initialize();
@@ -96,6 +114,18 @@ class RunScribeDataField extends Ui.DataField {
             d[units] = getMetricUnit(6);
             mPowerContributor = createField("", 12, Fit.DATA_TYPE_FLOAT, d);
         }
+        
+        // Uber
+        var valuesLeft = [];
+        var valuesRight = [];
+        
+        for (var i = 0; i < mValueCount; ++i) {
+            valuesLeft.add(0.0);
+            valuesRight.add(0.0);
+        }
+        
+        mValues.add(valuesLeft);
+        mValues.add(valuesRight);
     }
     
     function onSettingsChanged() {
@@ -137,11 +167,39 @@ class RunScribeDataField extends Ui.DataField {
         if (mMetricCount < mVisibleMetrics) {
             mVisibleMetrics = mMetricCount;
         }
+
+        // Uber        
+        var updatesPerSlot = app.getProperty("trendLineInterval");
+        if (mUpdatesPerValue != updatesPerSlot) {
+            //mUpdatesPerValue = updatesPerSlot;
+            mUpdateCountLeft = 0;
+            mUpdateCountRight = 0;            
+        }
         
         mUpdateLayout = 1;
     }
     
-    function updateMetrics(sensor, contributors) {
+    function onTimerStart() {
+        // Uber
+        onTimerLap();    
+    }
+    
+    
+    function onTimerLap() {
+        // Uber
+        mPreviousLapLeft = mCurrentLaps[0];
+        mPreviousLapRight = mCurrentLaps[1];
+        
+        mLapUpdateCountLeft = 0;
+        mLapUpdateCountRight = 0;
+    }    
+        
+    function updateMetrics(sensor, contributors, index, updateCount, lapUpdateCount) {
+    
+        var slotIndex = 0;
+        var updateOffset = 0.0;
+        var value = 0.0;
+    
         if (!sensor.isChannelOpen) {
             sensor.openChannel();
         }
@@ -155,22 +213,43 @@ class RunScribeDataField extends Ui.DataField {
 	        if (contributors[i] != null) {
 	            contributors[i].setData(sensor.data[mMetricTypes[i]]);
 	        }
-        }            
+        }
+
+        // Uber        
+        slotIndex = (updateCount / mUpdatesPerValue) % mValueCount;
+        updateOffset = (updateCount % mUpdatesPerValue) * 1.0;
+        
+        value = sensor.data[mMetricTypes[0]];
+
+        mValues[index][slotIndex] = mValues[index][slotIndex] * (updateOffset / (updateOffset + 1.0)); 
+        mValues[index][slotIndex] += (value * 1.0) / (updateOffset + 1.0);
+        
+        updateOffset = lapUpdateCount * 1.0;
+
+        mCurrentLaps[index] = mCurrentLaps[index] * (updateOffset / (updateOffset + 1.0));
+        mCurrentLaps[index] += (value * 1.0) / (updateOffset + 1.0);
     }
     
     function compute(info) {
+    
+        System.print(System.getSystemStats().usedMemory + ":");
+    
     
         var power = 0.0;
         var sensorCount = 0;
     
         if (mSensorLeft != null) {
-            updateMetrics(mSensorLeft, mMetricContributorsLeft);
+            updateMetrics(mSensorLeft, mMetricContributorsLeft, 0, mUpdateCountLeft, mLapUpdateCountLeft);
+            ++mUpdateCountLeft;
+            ++mLapUpdateCountLeft;
             power = mSensorLeft.data[6];
             ++sensorCount;
         }
 
         if (mSensorRight != null) {
-            updateMetrics(mSensorRight, mMetricContributorsRight);
+            updateMetrics(mSensorRight, mMetricContributorsRight, 1, mUpdateCountRight, mLapUpdateCountRight);
+            ++mUpdateCountRight;
+            ++mLapUpdateCountRight;
             power += mSensorRight.data[6];
             ++sensorCount;
         }
@@ -404,4 +483,42 @@ class RunScribeDataField extends Ui.DataField {
             dc.drawLine(x, y + mMetricValueY, x, y + mMetricValueY + mDataFontHeight);
         }    
     }
+    
+    // Uber
+    hidden function drawTrendLine(dc, x, y, values, startIndex, limit) {
+        if (values.size() == 0) {
+            return;
+        }
+        
+        var index = startIndex % mValueCount;
+        values[index] *= 1.0;
+        
+        var min = values[index];
+        var max = values[index];
+        
+        for (var i = 1; i < limit; ++i) {
+            index = (i + startIndex) % mValueCount;
+            values[index] *= 1.0;
+            if (values[index] < min) {
+                min = values[index];
+            }
+            if (values[index] > max) {
+                max = values[index];
+            }
+        }
+        
+        var delta = max - min;
+        if (delta == 0) {
+            delta = 1;
+        }
+        
+        limit -= 1; 
+        
+        for (var i = 0; i < limit; ++i) {
+            var start = (values[(i + startIndex) % mValueCount] - min) / delta;
+            var end = (values[(i + 1 + startIndex) % mValueCount] - min) / delta;
+            
+            dc.drawLine(x + (xCenter * 0.6 / limit) * i, y - yCenter * 0.3 * start, x + (xCenter * 0.6 / limit) * (i + 1), y - yCenter * 0.3 * end);
+        }        
+    }    
 }

@@ -29,7 +29,7 @@ using Toybox.FitContributor as Fit;
 
 class RunScribeDataField extends Ui.DataField {
 
-    hidden var mMetricTypes = [-1, -1, -1, -1];  // 0 - Impact GS, 1 - Braking GS, 2 - FS Type, 3 - Pronation, 4 - Flight Ratio, 5 - Contact Time, 6 - Power
+    hidden var mMetricTypes = [-1, -1, -1];  // 0 - Impact GS, 1 - Braking GS, 2 - FS Type, 3 - Pronation, 4 - Flight Ratio, 5 - Contact Time, 6 - Power
 
     hidden var mMetricCount = 0;
     hidden var mVisibleMetrics;
@@ -45,6 +45,12 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mDataFont;
     hidden var mDataFontHeight;
     
+    hidden var mCurrentLapFont;
+    hidden var mCurrentLapFontHeight;
+    
+    hidden var mPreviousLapFont;
+    hidden var mPreviousLapFontHeight;
+    
     var mSensorLeft;
     var mSensorRight;
     
@@ -57,14 +63,14 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mUpdateLayout = 0;
     
     // FIT Contributions variables
-    hidden var mMetricContributorsLeft = [null, null, null, null];
-    hidden var mMetricContributorsRight = [null, null, null, null];
+    hidden var mMetricContributorsLeft = [null, null, null];
+    hidden var mMetricContributorsRight = [null, null, null];
 
     hidden var mPowerContributor;
     
     // Uber screen
     hidden var mUpdatesPerValue = 5;
-    hidden var mValueCount = 16;
+    //hidden var mValueCount = 16;
     
     hidden var mValues = [];
 
@@ -98,16 +104,16 @@ class RunScribeDataField extends Ui.DataField {
 
         var hasPower = 0;
         
-        for (var i = 0; i < 4; ++i) {
-	        if (mMetricTypes[i] >= 0) {
-	            d[units] = getMetricUnit(mMetricTypes[i]);
-	            if (mMetricTypes[i] < 6) {
-		            mMetricContributorsLeft[i] = createField("", mMetricTypes[i], Fit.DATA_TYPE_FLOAT, d);
-		            mMetricContributorsRight[i] = createField("", mMetricTypes[i] + 6, Fit.DATA_TYPE_FLOAT, d);
-		       } else {
-		           hasPower = 1;
-		       }
-	        }
+        for (var i = 0; i < 3; ++i) {
+            if (mMetricTypes[i] >= 0) {
+                d[units] = getMetricUnit(mMetricTypes[i]);
+                if (mMetricTypes[i] < 6) {
+                    mMetricContributorsLeft[i] = createField("", mMetricTypes[i], Fit.DATA_TYPE_FLOAT, d);
+                    mMetricContributorsRight[i] = createField("", mMetricTypes[i] + 6, Fit.DATA_TYPE_FLOAT, d);
+				} else {
+				    hasPower = 1;
+				}
+            }
         }
 
         if (hasPower > 0) {
@@ -119,7 +125,7 @@ class RunScribeDataField extends Ui.DataField {
         var valuesLeft = [];
         var valuesRight = [];
         
-        for (var i = 0; i < mValueCount; ++i) {
+        for (var i = 0; i < 16; ++i) {
             valuesLeft.add(0.0);
             valuesRight.add(0.0);
         }
@@ -133,7 +139,7 @@ class RunScribeDataField extends Ui.DataField {
         
         if (mMetricCount == 0) {
             var name = "tM";
-            for (var i = 0; i < 4; ++i) {
+            for (var i = 0; i < 3; ++i) {
                 mMetricTypes[i] = app.getProperty(name + (i + 1));
                 // Remove duplicatate metrics
                 for (var j = 0; j < i; ++j) {
@@ -144,19 +150,11 @@ class RunScribeDataField extends Ui.DataField {
             }
             
             if (mMetricTypes[1] < 0) {
-                if (mMetricTypes[2] < 0) {
-                    mMetricTypes[1] = mMetricTypes[3];
-                } else {
-                    mMetricTypes[1] = mMetricTypes[2];
-                    mMetricTypes[2] = mMetricTypes[3];
-                }
-                mMetricTypes[3] = -1;
-            } else if (mMetricTypes[2] < 0) {
-                mMetricTypes[2] = mMetricTypes[3];
-                mMetricTypes[3] = -1;
+                mMetricTypes[1] = mMetricTypes[2];
+                mMetricTypes[2] = -1;
             }
     
-            for (var i = 0; i < 4; ++i) {
+            for (var i = 0; i < 3; ++i) {
                 if (mMetricTypes[i] >= 0) {
                     mMetricCount = i + 1;
                 }        
@@ -209,48 +207,53 @@ class RunScribeDataField extends Ui.DataField {
             sensor.closeChannel();
         }
     
-        for (var i = 0; i < 4; ++i) {
-	        if (contributors[i] != null) {
-	            contributors[i].setData(sensor.data[mMetricTypes[i]]);
-	        }
+        for (var i = 0; i < 3; ++i) {
+            if (contributors[i] != null) {
+                contributors[i].setData(sensor.data[mMetricTypes[i]]);
+            }
         }
 
         // Uber        
-        slotIndex = (updateCount / mUpdatesPerValue) % mValueCount;
+        slotIndex = (updateCount / mUpdatesPerValue) % 16;
         updateOffset = (updateCount % mUpdatesPerValue) * 1.0;
+        var updateOffsetPlusOne = updateOffset + 1.0;
         
         value = sensor.data[mMetricTypes[0]];
 
-        mValues[index][slotIndex] = mValues[index][slotIndex] * (updateOffset / (updateOffset + 1.0)); 
-        mValues[index][slotIndex] += (value * 1.0) / (updateOffset + 1.0);
+        var values = mValues[index]; 
+        values[slotIndex] = values[slotIndex] * (updateOffset / updateOffsetPlusOne); 
+        values[slotIndex] += (value * 1.0) / updateOffsetPlusOne;
         
         updateOffset = lapUpdateCount * 1.0;
+        updateOffsetPlusOne = updateOffset + 1.0;
 
-        mCurrentLaps[index] = mCurrentLaps[index] * (updateOffset / (updateOffset + 1.0));
-        mCurrentLaps[index] += (value * 1.0) / (updateOffset + 1.0);
+        mCurrentLaps[index] = mCurrentLaps[index] * (updateOffset / updateOffsetPlusOne);
+        mCurrentLaps[index] += (value * 1.0) / updateOffsetPlusOne;
     }
     
     function compute(info) {
     
         System.print(System.getSystemStats().usedMemory + ":");
     
-    
         var power = 0.0;
         var sensorCount = 0;
+        
+        var sensorLeft = mSensorLeft;
+        var sensorRight = mSensorRight;
     
-        if (mSensorLeft != null) {
-            updateMetrics(mSensorLeft, mMetricContributorsLeft, 0, mUpdateCountLeft, mLapUpdateCountLeft);
+        if (sensorLeft != null) {
+            updateMetrics(sensorLeft, mMetricContributorsLeft, 0, mUpdateCountLeft, mLapUpdateCountLeft);
             ++mUpdateCountLeft;
             ++mLapUpdateCountLeft;
-            power = mSensorLeft.data[6];
+            power = sensorLeft.data[6];
             ++sensorCount;
         }
 
-        if (mSensorRight != null) {
-            updateMetrics(mSensorRight, mMetricContributorsRight, 1, mUpdateCountRight, mLapUpdateCountRight);
+        if (sensorRight != null) {
+            updateMetrics(sensorRight, mMetricContributorsRight, 1, mUpdateCountRight, mLapUpdateCountRight);
             ++mUpdateCountRight;
             ++mLapUpdateCountRight;
-            power += mSensorRight.data[6];
+            power += sensorRight.data[6];
             ++sensorCount;
         }
                 
@@ -282,21 +285,14 @@ class RunScribeDataField extends Ui.DataField {
             width *= 2.0;
         }
 
-        var fontIdx;
-        var fonts = [Gfx.FONT_XTINY, Gfx.FONT_TINY, Gfx.FONT_SMALL, Gfx.FONT_MEDIUM, Gfx.FONT_LARGE,
-                    Gfx.FONT_NUMBER_MILD, Gfx.FONT_NUMBER_MEDIUM, Gfx.FONT_NUMBER_HOT, Gfx.FONT_NUMBER_THAI_HOT];
-                     
-        //Search through fonts from biggest to smallest
-        for (fontIdx = 8; fontIdx > 0; --fontIdx) {
-            if ((dc.getTextWidthInPixels("00.0-", fonts[fontIdx]) <= width * 0.225)) {
-                // If this font fits, it is the biggest one that does
-                break;
-            }
-        }
-        
-        mDataFont = fonts[fontIdx];       
-            
+        mDataFont = selectFont(dc, width * 0.225, "00.0-");       
         mDataFontHeight = dc.getFontHeight(mDataFont);    
+
+        mCurrentLapFont = selectFont(dc, width * 0.1, "00.0");
+        mCurrentLapFontHeight = dc.getFontHeight(mCurrentLapFont) * 0.5;
+
+        mPreviousLapFont = selectFont(dc, width * 0.075, "00.0");
+        mPreviousLapFontHeight = dc.getFontHeight(mPreviousLapFont) * 0.5;
             
         mMetricTitleY = -(mDataFontHeight + metricNameFontHeight) * 0.5;
         if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
@@ -306,6 +302,25 @@ class RunScribeDataField extends Ui.DataField {
         mMetricValueY = mMetricTitleY + metricNameFontHeight;
         
         mUpdateLayout = 0;
+    }
+    
+    hidden function selectFont(dc, width, testString) {
+        var fontIdx;
+        var dimensions;
+        
+        var fonts = [Gfx.FONT_XTINY, Gfx.FONT_TINY, Gfx.FONT_SMALL, Gfx.FONT_MEDIUM, Gfx.FONT_LARGE,
+                    Gfx.FONT_NUMBER_MILD, Gfx.FONT_NUMBER_MEDIUM, Gfx.FONT_NUMBER_HOT, Gfx.FONT_NUMBER_THAI_HOT];
+                     
+        //Search through fonts from biggest to smallest
+        for (fontIdx = 8; fontIdx > 0; --fontIdx) {
+            dimensions = dc.getTextDimensions(testString, fonts[fontIdx]);
+            if ((dimensions[0] <= width)) {
+                // If this font fits, it is the biggest one that does
+                break;
+            }
+        }
+        
+        return fonts[fontIdx];
     }
     
     hidden function getMetricName(metricType) {
@@ -387,72 +402,47 @@ class RunScribeDataField extends Ui.DataField {
             onLayout(dc);
         }
 
+        var metX = xCenter;
+        var centerY = yCenter;
+
         // Update status
         if ((mSensorLeft != null && mSensorRight != null) && (mSensorRight.searching == 0 || mSensorLeft.searching == 0)) {
             
-            var met1x, met1y, met2x = 0, met2y = 0, met3x = 0, met3y = 0, met4x = 0, met4y = 0;
-            
-            var yOffset = yCenter * 0.55;
-            var xOffset = xCenter * 0.45;
+            var met1y, met2y = 0, met3y = 0;
+            var yOffset = centerY * 0.55;
         
             if (mScreenShape == System.SCREEN_SHAPE_SEMI_ROUND) {
                 yOffset *= 1.15;
             }
         
             if (mVisibleMetricCount == 1) {
-                met1x = xCenter;
-                met1y = yCenter;
+                met1y = centerY;
             }
             else if (mVisibleMetricCount == 2) {
-                met1x = xCenter;
-                met2x = met1x;
                 if (mScreenShape == System.SCREEN_SHAPE_RECTANGLE) {
                     yOffset *= 1.35;
                 }
-                met1y = yCenter - yOffset * 0.6;
-                met2y = yCenter + yOffset * 0.6;
-            } else if (mScreenShape == System.SCREEN_SHAPE_RECTANGLE) {
-                yOffset *= 0.8;
-                met1x = xCenter - xOffset;
-                met1y = yCenter - yOffset;
-                met2x = xCenter + xOffset;
-                met2y = met1y;
-                met3y = yCenter + yOffset;  
-            
-                if (mVisibleMetricCount == 3) {
-                    met3x = xCenter;
-                } else {
-                    met3x = met1x;
-                    met4x = met2x;
-                    met4y = met3y;  
+                met1y = centerY - yOffset * 0.6;
+                met2y = centerY + yOffset * 0.6;
+            } else { 
+                if (mScreenShape == System.SCREEN_SHAPE_RECTANGLE) {
+                    yOffset *= 1.35;
                 }
+                met1y = centerY - yOffset;
+                met2y = centerY;
+                met3y = centerY + yOffset;  
+            }
+            
+            var firstMetric = mMetricTypes[0];
+            
+            if (mVisibleMetricCount == 1 && firstMetric != 6) {
+                drawSingleMetric(dc, metX, met1y, firstMetric);
             }
             else {
-                met1x = xCenter;
-                met1y = yCenter - yOffset;
-                met2y = yCenter;
-                 
-                if (mVisibleMetricCount == 3) {
-                    met2x = met1x;
-                    met3x = met1x;
-                    met3y = yCenter + yOffset;
-                } else {
-                    met2x = xCenter - xOffset;
-                    met3x = xCenter + xOffset;
-                    met3y = met2y;
-                    met4x = met1x;
-                    met4y = yCenter + yOffset;
-                }
-            }
-            
-            drawMetricOffset(dc, met1x, met1y, mMetricTypes[0]);         
-            if (mVisibleMetricCount >= 2) {
-                drawMetricOffset(dc, met2x, met2y, mMetricTypes[1]);
+                drawMetricOffset(dc, metX, met1y, firstMetric, 1);         
+                drawMetricOffset(dc, metX, met2y, mMetricTypes[1], 1);
                 if (mVisibleMetricCount >= 3) {
-                    drawMetricOffset(dc, met3x, met3y, mMetricTypes[2]);
-                    if (mVisibleMetricCount == 4) {
-                        drawMetricOffset(dc, met4x, met4y, mMetricTypes[3]);
-                    } 
+                    drawMetricOffset(dc, metX, met3y, mMetricTypes[2], 1);
                 } 
             }
         } else {
@@ -461,49 +451,105 @@ class RunScribeDataField extends Ui.DataField {
                 message = "No Channel!";
             }
             
-            dc.drawText(xCenter, yCenter - dc.getFontHeight(Gfx.FONT_MEDIUM) / 2, Gfx.FONT_MEDIUM, message, Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(metX, centerY - dc.getFontHeight(Gfx.FONT_MEDIUM) / 2, Gfx.FONT_MEDIUM, message, Gfx.TEXT_JUSTIFY_CENTER);
         }        
     }
 
-    hidden function drawMetricOffset(dc, x, y, metricType) {
+    hidden function drawMetricOffset(dc, x, y, metricType, title) {
     
         var metricLeft = getMetric(metricType, mSensorLeft);
         var metricRight = getMetric(metricType, mSensorRight);
         
-        dc.drawText(x, y + mMetricTitleY, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
-
+        if (title == 1) {
+            dc.drawText(x, y + mMetricTitleY, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
+        }
+        
+        var metricValueY = mMetricValueY;
+        var dataFont = mDataFont;
+        
         if (metricType == 6) {
             // Power metric presents a single value
-            dc.drawText(x, y + mMetricValueY, mDataFont, ((mSensorLeft.power + mSensorRight.power) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(x, y + metricValueY, dataFont, ((mSensorLeft.power + mSensorRight.power) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - mMetricValueOffsetX, y + metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + mMetricValueOffsetX, y + metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
-            dc.drawLine(x, y + mMetricValueY, x, y + mMetricValueY + mDataFontHeight);
+            dc.drawLine(x, y + metricValueY, x, y + metricValueY + mDataFontHeight);
         }    
     }
     
     // Uber
-    hidden function drawTrendLine(dc, x, y, values, startIndex, limit) {
-        if (values.size() == 0) {
-            return;
+    hidden function drawSingleMetric(dc, x, y, metricType) {
+    
+        var format = "%.1f";
+
+        if (metricType == 2 || metricType == 5) {
+            format = "%d";
+        }
+
+        //dc.drawText(x - mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
+        //dc.drawText(x + mMetricValueOffsetX, y + mMetricValueY, mDataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+
+        drawMetricOffset(dc, x, y, metricType, 0);
+
+        var yDelta = yCenter;
+
+        if (mScreenShape != System.SCREEN_SHAPE_SEMI_ROUND) {
+            yDelta *= 0.85;
+        }   
+        
+        var xMargin = 0.04;
+        if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
+           xMargin = 0.025;
         }
         
-        var index = startIndex % mValueCount;
-        values[index] *= 1.0;
+        // Draw line
+        dc.drawLine(x, y + yDelta * 0.8, x, y - yDelta * 0.7);
+         
+        if (dc.getHeight() == mScreenHeight) {
         
+            dc.drawText(x, y - yDelta * 0.98, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
+        
+            var deltaX1 = xCenter * (0.48 + xMargin);
+            var deltaX2 = xCenter * (0.48 - xMargin);
+            var deltaY = yDelta * 0.48;
+    
+            dc.drawText(x - deltaX1, y - deltaY - mPreviousLapFontHeight, mPreviousLapFont, mPreviousLapLeft.format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x - deltaX2, y - deltaY - mCurrentLapFontHeight, mCurrentLapFont, mCurrentLaps[0].format(format), Gfx.TEXT_JUSTIFY_LEFT);
+    
+            dc.drawText(x + deltaX2, y - deltaY - mCurrentLapFontHeight, mCurrentLapFont, mCurrentLaps[1].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + deltaX1, y - deltaY - mPreviousLapFontHeight, mPreviousLapFont, mPreviousLapRight.format(format), Gfx.TEXT_JUSTIFY_LEFT);
+    
+            drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, 0, mUpdateCountLeft);
+            drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, 1, mUpdateCountRight);
+        }
+    }    
+    
+    hidden function drawTrendLine(dc, x, y, index, updateCount) {
+        var startIndex = 0;
+        var limit = 16 - 1;
+        
+        if (updateCount / mUpdatesPerValue >= 16) {
+            startIndex = (1 + updateCount / mUpdatesPerValue) % 16;  
+        } else {
+            limit = updateCount / mUpdatesPerValue;
+        }
+        
+        var index = startIndex;
+        
+        var values = mValues[index];
         var min = values[index];
         var max = values[index];
         
         for (var i = 1; i < limit; ++i) {
-            index = (i + startIndex) % mValueCount;
-            values[index] *= 1.0;
-            if (values[index] < min) {
-                min = values[index];
+            index = (i + startIndex) % 16;
+            var value = values[index];
+            if (value < min) {
+                min = value;
             }
-            if (values[index] > max) {
-                max = values[index];
+            if (value > max) {
+                max = value;
             }
         }
         
@@ -512,13 +558,17 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
+        var deltaX = (xCenter * 0.6 / 15);
+        var deltaY = yCenter * 0.3 / delta;
+
         limit -= 1; 
         
-        for (var i = 0; i < limit; ++i) {
-            var start = (values[(i + startIndex) % mValueCount] - min) / delta;
-            var end = (values[(i + 1 + startIndex) % mValueCount] - min) / delta;
+        for (var i = startIndex; i < startIndex + limit; ++i) {
+            var start = (values[i % 16] * 1.0 - min);
+            var end = (values[(i + 1) % 16] * 1.0 - min);
             
-            dc.drawLine(x + (xCenter * 0.6 / limit) * i, y - yCenter * 0.3 * start, x + (xCenter * 0.6 / limit) * (i + 1), y - yCenter * 0.3 * end);
+            dc.drawLine(x, y - deltaY * start, x + deltaX, y - deltaY * end);
+            x += deltaX;
         }        
     }    
 }

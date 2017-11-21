@@ -39,6 +39,7 @@
         </settingConfig>
     </setting>
     
+    <!--
     <setting propertyKey="@Properties.tM4" title="@Strings.fourth_metric_label">
         <settingConfig type="list">
             <listEntry value="0">@Strings.impact_gs_label</listEntry>
@@ -50,9 +51,10 @@
             <listEntry value="6">@Strings.power_label</listEntry>
         </settingConfig>
     </setting>
+    -->
 
     <setting propertyKey="@Properties.visibleMetrics" title="@Strings.visibleMetrics">
-        <settingConfig type="numeric" min="1" max="4"/>
+        <settingConfig type="numeric" min="1" max="3"/>
     </setting>
 
     

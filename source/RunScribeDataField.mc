@@ -195,9 +195,7 @@ class RunScribeDataField extends Ui.DataField {
         }
     
         for (var i = 0; i < contributors.size(); ++i) {
-            if (contributors[i] != null) {
-                contributors[i].setData(sensor.data[mMetricTypes[i]]);
-            }
+            contributors[i].setData(sensor.data[mMetricTypes[i]]);
         }
 
         // Uber        

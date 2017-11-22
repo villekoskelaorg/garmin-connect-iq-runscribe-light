@@ -165,8 +165,8 @@ class RunScribeDataField extends Ui.DataField {
         
         if (mMetricContributorsLeft.size() == 0 && mPowerContributor == null) {
 	        for (var i = 0; i < mMetricTypes.size(); ++i) {
-	            d[units] = getMetricUnit(mMetricTypes[i]);
 	            if (mMetricTypes[i] < 6) {
+                    d[units] = getMetricUnit(mMetricTypes[i]);
 	                mMetricContributorsLeft.add(createField("", mMetricTypes[i], Fit.DATA_TYPE_FLOAT, d));
 	                mMetricContributorsRight.add(createField("", mMetricTypes[i] + 6, Fit.DATA_TYPE_FLOAT, d));
 	            } else {
@@ -175,7 +175,7 @@ class RunScribeDataField extends Ui.DataField {
 	        }
 	
 	        if (hasPower > 0) {
-	            d[units] = getMetricUnit(6);
+	            d[units] = "W";
 	            mPowerContributor = createField("", 12, Fit.DATA_TYPE_FLOAT, d);
 	        }
         }        
@@ -353,9 +353,6 @@ class RunScribeDataField extends Ui.DataField {
         if (metricType == 5) {
             return "ms";
         } 
-        if (metricType == 6) {
-            return "W";
-        }
         
         return null;
     }

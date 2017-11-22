@@ -38,7 +38,7 @@ class RunScribeDataFieldApp extends App.AppBase {
     }
     
     function getInitialView() {
-        var antRate = getProperty("antRate");
+        var antRate = getProperty("aR");
         
         var sensorLeft;
         var sensorRight;

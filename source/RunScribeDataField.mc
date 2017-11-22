@@ -110,9 +110,9 @@ class RunScribeDataField extends Ui.DataField {
                 if (mMetricTypes[i] < 6) {
                     mMetricContributorsLeft[i] = createField("", mMetricTypes[i], Fit.DATA_TYPE_FLOAT, d);
                     mMetricContributorsRight[i] = createField("", mMetricTypes[i] + 6, Fit.DATA_TYPE_FLOAT, d);
-				} else {
-				    hasPower = 1;
-				}
+                } else {
+                    hasPower = 1;
+                }
             }
         }
 
@@ -439,11 +439,13 @@ class RunScribeDataField extends Ui.DataField {
                 drawSingleMetric(dc, metX, met1y, firstMetric);
             }
             else {
-                drawMetricOffset(dc, metX, met1y, firstMetric, 1);         
-                drawMetricOffset(dc, metX, met2y, mMetricTypes[1], 1);
-                if (mVisibleMetricCount >= 3) {
-                    drawMetricOffset(dc, metX, met3y, mMetricTypes[2], 1);
-                } 
+                drawMetricOffset(dc, metX, met1y, firstMetric, 1);
+                if (mVisibleMetricCount >= 2) {         
+                    drawMetricOffset(dc, metX, met2y, mMetricTypes[1], 1);
+                    if (mVisibleMetricCount >= 3) {
+                        drawMetricOffset(dc, metX, met3y, mMetricTypes[2], 1);
+                    } 
+                }
             }
         } else {
             var message = "Searching(1.30)...";
@@ -469,7 +471,7 @@ class RunScribeDataField extends Ui.DataField {
         
         if (metricType == 6) {
             // Power metric presents a single value
-            dc.drawText(x, y + metricValueY, dataFont, ((mSensorLeft.power + mSensorRight.power) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(x, y + metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
             dc.drawText(x - mMetricValueOffsetX, y + metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
             dc.drawText(x + mMetricValueOffsetX, y + metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);

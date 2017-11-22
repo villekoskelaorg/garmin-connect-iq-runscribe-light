@@ -36,7 +36,7 @@ class RunScribeSensor extends Ant.GenericChannel {
     //  Pronation Excursion     -51.2 to +51.1      1/10    deg         10 bits
 
     
-    var data = [0, 0, 0, 0, 0, 0, 0];
+    var data = [];
 
     // Ant channel & states
     var searching = 1;
@@ -46,6 +46,10 @@ class RunScribeSensor extends Ant.GenericChannel {
     function initialize(deviceType, rsFreq, rsMesgPeriod) {
         // Get the channel
         GenericChannel.initialize(method(:onMessage), new Ant.ChannelAssignment(Ant.CHANNEL_TYPE_RX_NOT_TX, Ant.NETWORK_PUBLIC));
+        
+        for (var i = 0; i < 7; ++i) {
+            data.add(0);
+        }
         
         // Set the configuration
         setDeviceConfig(new Ant.DeviceConfig( {

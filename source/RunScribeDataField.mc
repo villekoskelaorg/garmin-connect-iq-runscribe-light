@@ -459,18 +459,18 @@ class RunScribeDataField extends Ui.DataField {
 
         dc.drawText(x, y + titleOffset, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
         
-        var metricValueY = mMetricValueY;
+        var metricValueY = y + mMetricValueY;
         var dataFont = mDataFont;
         
         if (metricType == 6) {
             // Power metric presents a single value
-            dc.drawText(x, y + metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(x, metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(x - mMetricValueOffsetX, y + metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + mMetricValueOffsetX, y + metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - mMetricValueOffsetX, metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + mMetricValueOffsetX, metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
-            dc.drawLine(x, y + metricValueY, x, y + metricValueY + mDataFontHeight);
+            dc.drawLine(x, metricValueY, x, metricValueY + mDataFontHeight);
         }    
     }
     

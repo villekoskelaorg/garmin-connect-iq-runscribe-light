@@ -266,10 +266,10 @@ class RunScribeDataField extends Ui.DataField {
         var width = dc.getWidth();
         var height = dc.getHeight();
         
-        mVisibleMetricCount = mVisibleMetrics;
+        var visibleMetricCount = mVisibleMetrics;
         
         if (height < mScreenHeight) {
-            mVisibleMetricCount = 1;
+            visibleMetricCount = 1;
         }
         
         xCenter = width / 2;
@@ -279,27 +279,33 @@ class RunScribeDataField extends Ui.DataField {
 
         // Compute data width/height for horizintal layouts
         var metricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
-        if (mVisibleMetricCount == 2) {
+        if (visibleMetricCount == 2) {
             width *= 1.6;
-        } else if (mVisibleMetricCount == 1) {
+        } else if (visibleMetricCount == 1) {
             width *= 2.0;
         }
+        
+        mVisibleMetricCount = visibleMetricCount;
 
-        mDataFont = selectFont(dc, width * 0.225, "00.0-");       
-        mDataFontHeight = dc.getFontHeight(mDataFont);    
+        var font = selectFont(dc, width * 0.225, "00.0-");       
+        mDataFontHeight = dc.getFontHeight(font);    
+        mDataFont = font;
+    
+        font = selectFont(dc, width * 0.1, "00.0");
+        mCurrentLapFontHeight = dc.getFontHeight(font) * 0.5;
+        mCurrentLapFont = font;
 
-        mCurrentLapFont = selectFont(dc, width * 0.1, "00.0");
-        mCurrentLapFontHeight = dc.getFontHeight(mCurrentLapFont) * 0.5;
-
-        mPreviousLapFont = selectFont(dc, width * 0.075, "00.0");
-        mPreviousLapFontHeight = dc.getFontHeight(mPreviousLapFont) * 0.5;
+        font = selectFont(dc, width * 0.075, "00.0");
+        mPreviousLapFontHeight = dc.getFontHeight(font) * 0.5;
+        mPreviousLapFont = font;    
             
-        mMetricTitleY = -(mDataFontHeight + metricNameFontHeight) * 0.5;
+        var metricTitleY = -(mDataFontHeight + metricNameFontHeight) * 0.5;
         if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
-            mMetricTitleY *= 1.1;
+            metricTitleY *= 1.1;
         } 
         
-        mMetricValueY = mMetricTitleY + metricNameFontHeight;
+        mMetricValueY = metricTitleY + metricNameFontHeight;
+        mMetricTitleY = metricTitleY;
         
         mUpdateLayout = 0;
     }
@@ -532,10 +538,12 @@ class RunScribeDataField extends Ui.DataField {
         var startIndex = 0;
         var limit = 16 - 1;
         
-        if (updateCount / mUpdatesPerValue >= 16) {
-            startIndex = (1 + updateCount / mUpdatesPerValue) % 16;  
+        var step = updateCount / mUpdatesPerValue; 
+        
+        if (step >= 16) {
+            startIndex = (1 + step) % 16;  
         } else {
-            limit = updateCount / mUpdatesPerValue;
+            limit = step;
         }
         
         var index = startIndex;

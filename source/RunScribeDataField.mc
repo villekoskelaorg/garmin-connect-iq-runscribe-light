@@ -35,6 +35,7 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mVisibleMetrics;
 
     hidden var mVisibleMetricCount;
+    hidden var mFullScreen;
 
     // Common
     hidden var mMetricTitleY;
@@ -249,9 +250,11 @@ class RunScribeDataField extends Ui.DataField {
         var height = dc.getHeight();
         
         var visibleMetricCount = mVisibleMetrics;
+        mFullScreen = 1;
         
         if (height < mScreenHeight) {
             visibleMetricCount = 1;
+            mFullScreen = 0;
         }
         
         xCenter = width / 2;
@@ -423,7 +426,7 @@ class RunScribeDataField extends Ui.DataField {
             var metricTypes = mMetricTypes;
             var firstMetric = metricTypes[0];
             
-            if (visibleMetricCount == 1 && firstMetric != 6) {
+            if (visibleMetricCount == 1 && firstMetric != 6 && mFullScreen) {
                 drawSingleMetric(dc, metX, met1y, firstMetric);
             }
             else {

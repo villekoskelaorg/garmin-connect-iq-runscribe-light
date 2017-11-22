@@ -407,8 +407,11 @@ class RunScribeDataField extends Ui.DataField {
         var metX = xCenter;
         var centerY = yCenter;
 
+        var sensorLeft = mSensorLeft;
+        var sensorRight = mSensorRight;
+
         // Update status
-        if ((mSensorLeft != null && mSensorRight != null) && (mSensorRight.searching == 0 || mSensorLeft.searching == 0)) {
+        if ((sensorLeft != null && sensorRight != null) && (sensorRight.searching == 0 || sensorLeft.searching == 0)) {
             
             var met1y, met2y = 0, met3y = 0;
             var yOffset = centerY * 0.55;
@@ -451,7 +454,7 @@ class RunScribeDataField extends Ui.DataField {
             }
         } else {
             var message = "Searching(1.30)...";
-            if (mSensorLeft == null || mSensorRight == null) {
+            if (sensorLeft == null || sensorRight == null) {
                 message = "No Channel!";
             }
             

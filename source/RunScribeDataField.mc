@@ -402,7 +402,7 @@ class RunScribeDataField extends Ui.DataField {
         if ((sensorLeft != null && sensorRight != null) && (sensorRight.searching == 0 || sensorLeft.searching == 0)) {
             
             var visibleMetricCount = mVisibleMetricCount;
-            var met1y, met2y = 0, met3y = 0;
+            var met1y, met2y = 0;
             var yOffset = centerY * 0.55;
         
             if (screenShape == System.SCREEN_SHAPE_SEMI_ROUND) {
@@ -421,7 +421,8 @@ class RunScribeDataField extends Ui.DataField {
             } else { 
                 met1y = centerY - yOffset;
                 met2y = centerY;
-                met3y = centerY + yOffset;  
+
+                drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[2], 0);
             }
             
             var metricTypes = mMetricTypes;
@@ -434,9 +435,6 @@ class RunScribeDataField extends Ui.DataField {
                 drawMetricOffset(dc, metX, met1y, firstMetric, 0);
                 if (visibleMetricCount >= 2) {         
                     drawMetricOffset(dc, metX, met2y, metricTypes[1], 0);
-                    if (visibleMetricCount >= 3) {
-                        drawMetricOffset(dc, metX, met3y, metricTypes[2], 0);
-                    } 
                 }
             }
         } else {

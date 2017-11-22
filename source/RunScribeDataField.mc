@@ -194,10 +194,6 @@ class RunScribeDataField extends Ui.DataField {
         
     function updateMetrics(sensor, contributors, index, updateCount, lapUpdateCount) {
     
-        var slotIndex = 0;
-        var updateOffset = 0.0;
-        var value = 0.0;
-    
         if (!sensor.isChannelOpen) {
             sensor.openChannel();
         }
@@ -214,11 +210,11 @@ class RunScribeDataField extends Ui.DataField {
         }
 
         // Uber        
-        slotIndex = (updateCount / mUpdatesPerValue) % 16;
-        updateOffset = (updateCount % mUpdatesPerValue) * 1.0;
+        var slotIndex = (updateCount / mUpdatesPerValue) % 16;
+        var updateOffset = (updateCount % mUpdatesPerValue) * 1.0;
         var updateOffsetPlusOne = updateOffset + 1.0;
         
-        value = sensor.data[mMetricTypes[0]];
+        var value = sensor.data[mMetricTypes[0]];
 
         var values = mValues[index]; 
         values[slotIndex] = values[slotIndex] * (updateOffset / updateOffsetPlusOne); 

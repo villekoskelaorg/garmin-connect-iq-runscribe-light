@@ -165,20 +165,21 @@ class RunScribeDataField extends Ui.DataField {
         var hasPower = 0;
         
         if (mMetricContributorsLeft.size() == 0 && mPowerContributor == null) {
-	        for (var i = 0; i < mMetricTypes.size(); ++i) {
-	            if (mMetricTypes[i] < 6) {
-                    d[units] = getMetricUnit(mMetricTypes[i]);
-	                mMetricContributorsLeft.add(createField("", mMetricTypes[i], Fit.DATA_TYPE_FLOAT, d));
-	                mMetricContributorsRight.add(createField("", mMetricTypes[i] + 6, Fit.DATA_TYPE_FLOAT, d));
-	            } else {
-	                hasPower = 1;
-	            }
-	        }
-	
-	        if (hasPower > 0) {
-	            d[units] = "W";
-	            mPowerContributor = createField("", 12, Fit.DATA_TYPE_FLOAT, d);
-	        }
+            for (var i = 0; i < mMetricTypes.size(); ++i) {
+                var metricType = mMetricTypes[i]; 
+                if (metricType < 6) {
+                    d[units] = getMetricUnit(metricType);
+                    mMetricContributorsLeft.add(createField("", metricType, Fit.DATA_TYPE_FLOAT, d));
+                    mMetricContributorsRight.add(createField("", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
+                } else {
+                    hasPower = 1;
+                }
+            }
+    
+            if (hasPower > 0) {
+                d[units] = "W";
+                mPowerContributor = createField("", 12, Fit.DATA_TYPE_FLOAT, d);
+            }
         }        
     }    
         

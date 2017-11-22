@@ -356,7 +356,7 @@ class RunScribeDataField extends Ui.DataField {
     }
     
     hidden function getMetricUnit(metricType) {
-        if (metricType == 0 || metricType == 1) {
+        if (metricType < 2) {
             return "G";
         } 
         if (metricType == 2) {

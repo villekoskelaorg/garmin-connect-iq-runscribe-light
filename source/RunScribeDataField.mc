@@ -206,12 +206,12 @@ class RunScribeDataField extends Ui.DataField {
         var value = sensor.data[mMetricTypes[0]] * 1.0;
 
         var values = mValues[index]; 
-        values[slotIndex] = values[slotIndex] * (updateOffset / updateOffsetPlusOne) + value / updateOffsetPlusOne;
+        values[slotIndex] = (values[slotIndex] * updateOffset + value) / updateOffsetPlusOne;
         
         updateOffset = mLapUpdateCount * 1.0;
         updateOffsetPlusOne = updateOffset + 1.0;
 
-        mCurrentLaps[index] = mCurrentLaps[index] * (updateOffset / updateOffsetPlusOne) + value / updateOffsetPlusOne;
+        mCurrentLaps[index] = (mCurrentLaps[index] * updateOffset + value) / updateOffsetPlusOne;
     }
     
     function compute(info) {

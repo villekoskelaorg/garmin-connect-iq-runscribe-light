@@ -343,18 +343,6 @@ class RunScribeDataField extends Ui.DataField {
         return null;
     }
     
-        
-    hidden function getMetric(metricType, sensor) {
-        var data = sensor.data[metricType];
-        
-        if (metricType == 2 || metricType == 5) {
-            return data.format("%d");
-        }
-        
-        return data.format("%.1f");
-    }
-    
-    
     // Handle the update event
     function onUpdate(dc) {
         var fgColor = Gfx.COLOR_WHITE;
@@ -427,10 +415,6 @@ class RunScribeDataField extends Ui.DataField {
     }
 
     hidden function drawMetricOffset(dc, x, y, metricType, titleOffset) {
-    
-        var metricLeft = getMetric(metricType, mSensorLeft);
-        var metricRight = getMetric(metricType, mSensorRight);
-        
         if (titleOffset == 0) {
             titleOffset = mMetricTitleY;
         }
@@ -439,13 +423,18 @@ class RunScribeDataField extends Ui.DataField {
         
         var metricValueY = y + mMetricValueY;
         var dataFont = mDataFont;
+
+        var format = "%.1f";        
+        if (metricType == 2 || metricType == 5) {
+            format = "%d";
+        }
         
         if (metricType == 6) {
             // Power metric presents a single value
-            dc.drawText(x, metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(x, metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format(format), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(x - 8, metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + 8, metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - 8, metricValueY, dataFont, mSensorLeft.data[metricType].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + 8, metricValueY, dataFont, mSensorRight.data[metricType].format(format), Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
             dc.drawLine(x, metricValueY, x, metricValueY + mDataFontHeight);
@@ -456,7 +445,6 @@ class RunScribeDataField extends Ui.DataField {
     hidden function drawSingleMetric(dc, x, y, metricType) {
     
         var format = "%.1f";
-
         if (metricType == 2 || metricType == 5) {
             format = "%d";
         }

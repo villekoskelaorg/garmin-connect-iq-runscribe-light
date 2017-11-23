@@ -31,16 +31,12 @@ class RunScribeDataField extends Ui.DataField {
 
     hidden var mMetricTypes = [];  // 0 - Impact GS, 1 - Braking GS, 2 - FS Type, 3 - Pronation, 4 - Flight Ratio, 5 - Contact Time, 6 - Power
 
-    hidden var mMetricCount = 0;
     hidden var mVisibleMetrics;
-
     hidden var mVisibleMetricCount;
-    hidden var mFullScreen;
 
     // Common
     hidden var mMetricTitleY;
     hidden var mMetricValueY;
-    hidden var mMetricValueOffsetX;
         
     // Font values
     hidden var mDataFont;
@@ -82,7 +78,6 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mPreviousLapLeft = 0.0;
     hidden var mPreviousLapRight = 0.0;
     
-    
     // Constructor
     function initialize(sensorL, sensorR, screenShape, screenHeight) {
         DataField.initialize();
@@ -111,7 +106,7 @@ class RunScribeDataField extends Ui.DataField {
     
     function onSettingsChanged() {
         var app = App.getApp();
-        var metricCount = mMetricCount;
+        var metricCount = mMetricTypes.size();
         
         if (mMetricContributorsLeft.size() == 0 && mPowerContributor == null) {
             metricCount = 0;
@@ -129,8 +124,6 @@ class RunScribeDataField extends Ui.DataField {
                     filter = filter | metricFilter;
                 }
             }
-            
-            mMetricCount = metricCount;
         }
         
         mVisibleMetrics = app.getProperty("vM");
@@ -249,18 +242,14 @@ class RunScribeDataField extends Ui.DataField {
         var height = dc.getHeight();
         
         var visibleMetricCount = mVisibleMetrics;
-        mFullScreen = 1;
         
         if (height < mScreenHeight) {
             visibleMetricCount = 1;
-            mFullScreen = 0;
         }
         
         xCenter = width / 2;
         yCenter = height / 2;
                 
-        mMetricValueOffsetX = dc.getTextWidthInPixels(" ", Gfx.FONT_XTINY) + 2;
-
         // Compute data width/height for horizintal layouts
         var metricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
         if (visibleMetricCount == 2) {
@@ -423,7 +412,7 @@ class RunScribeDataField extends Ui.DataField {
             var metricTypes = mMetricTypes;
             var firstMetric = metricTypes[0];
             
-            if (visibleMetricCount == 1 && firstMetric != 6 && mFullScreen) {
+            if (visibleMetricCount == 1 && firstMetric != 6 && dc.getHeight() == mScreenHeight) {
                 drawSingleMetric(dc, metX, met1y, firstMetric);
             }
             else {
@@ -460,8 +449,8 @@ class RunScribeDataField extends Ui.DataField {
             // Power metric presents a single value
             dc.drawText(x, metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format("%d"), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(x - mMetricValueOffsetX, metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + mMetricValueOffsetX, metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - 8, metricValueY, dataFont, metricLeft, Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + 8, metricValueY, dataFont, metricRight, Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
             dc.drawLine(x, metricValueY, x, metricValueY + mDataFontHeight);

@@ -360,6 +360,8 @@ class RunScribeDataField extends Ui.DataField {
 
         // Update status - both sensors are either null or not null
         if ((sensorLeft != null) && (sensorRight.searching * sensorLeft.searching == 0)) {
+            var metricTypes = mMetricTypes;
+            var firstMetric = metricTypes[0];
             
             var visibleMetricCount = mVisibleMetricCount;
             var met1y, met2y = 0;
@@ -384,9 +386,6 @@ class RunScribeDataField extends Ui.DataField {
 
                 drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[2], 0);
             }
-            
-            var metricTypes = mMetricTypes;
-            var firstMetric = metricTypes[0];
             
             if (visibleMetricCount == 1 && firstMetric != 6 && dc.getHeight() == mScreenHeight) {
                 drawSingleMetric(dc, metX, met1y, firstMetric);

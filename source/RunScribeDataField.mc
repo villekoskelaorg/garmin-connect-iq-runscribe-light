@@ -397,7 +397,7 @@ class RunScribeDataField extends Ui.DataField {
         var screenShape = mScreenShape;
 
         // Update status
-        if ((sensorLeft != null && sensorRight != null) && (sensorRight.searching == 0 || sensorLeft.searching == 0)) {
+        if ((sensorLeft != null && sensorRight != null) && (sensorRight.searching * sensorLeft.searching == 0)) {
             
             var visibleMetricCount = mVisibleMetricCount;
             var met1y, met2y = 0;

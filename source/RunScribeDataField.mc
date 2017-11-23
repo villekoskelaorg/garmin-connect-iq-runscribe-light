@@ -367,11 +367,8 @@ class RunScribeDataField extends Ui.DataField {
             var met1y, met2y = 0;
             var yOffset = centerY * 0.55;
         
-            if (screenShape == System.SCREEN_SHAPE_SEMI_ROUND) {
+            if (screenShape == System.SCREEN_SHAPE_SEMI_ROUND || screenShape == System.SCREEN_SHAPE_RECTANGLE) {
                 yOffset *= 1.15;
-            }
-            if (screenShape == System.SCREEN_SHAPE_RECTANGLE) {
-                yOffset *= 1.35;
             }
         
             if (visibleMetricCount == 1) {

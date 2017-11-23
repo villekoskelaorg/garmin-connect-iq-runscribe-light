@@ -314,7 +314,7 @@ class RunScribeDataField extends Ui.DataField {
             return "Flight";
         } 
         if (metricType == 5) {
-            return "Contact";
+            return "GCT";
         } 
         if (metricType == 6) {
             return "Power";

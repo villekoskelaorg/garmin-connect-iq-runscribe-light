@@ -451,7 +451,7 @@ class RunScribeDataField extends Ui.DataField {
 
         var yDelta = yCenter;
 
-        if (mScreenShape != System.SCREEN_SHAPE_SEMI_ROUND) {
+        if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
             yDelta *= 0.85;
         }   
         
@@ -466,9 +466,6 @@ class RunScribeDataField extends Ui.DataField {
         dc.drawLine(x, y + yDelta * 0.8, x, y - yDelta * 0.7);
          
         if (dc.getHeight() == mScreenHeight) {
-        
-            //dc.drawText(x, y - yDelta * 0.98, Gfx.FONT_XTINY, getMetricName(metricType), Gfx.TEXT_JUSTIFY_CENTER);
-        
             var deltaX1 = xCenter * (0.48 + xMargin);
             var deltaX2 = xCenter * (0.48 - xMargin);
             var deltaY = yDelta * 0.48;
@@ -482,8 +479,8 @@ class RunScribeDataField extends Ui.DataField {
             dc.drawText(x + deltaX2, y - deltaY - currentLapFontHeight, mCurrentLapFont, mCurrentLaps[1].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
             dc.drawText(x + deltaX1, y - deltaY - previousLapFontHeight, mPreviousLapFont, mPreviousLapRight.format(format), Gfx.TEXT_JUSTIFY_LEFT);
     
-            drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, 0, mUpdateCount);
-            drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, 1, mUpdateCount);
+            drawTrendLine(dc, x - xCenter * 0.65, y + yDelta * 0.8, 0, mUpdateCount);
+            drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.8, 1, mUpdateCount);
         }
     }    
     
@@ -521,7 +518,7 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        var deltaX = (xCenter * 0.6 / (32 - 1));
+        var deltaX = (xCenter * 0.55 / (32 - 1));
         var deltaY = yCenter * 0.3 / delta;
 
         limit -= 1; 

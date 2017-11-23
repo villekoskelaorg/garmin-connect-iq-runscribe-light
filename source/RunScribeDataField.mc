@@ -100,7 +100,7 @@ class RunScribeDataField extends Ui.DataField {
         var valuesLeft = [];
         var valuesRight = [];
         
-        for (var i = 0; i < 16; ++i) {
+        for (var i = 0; i < 32; ++i) {
             valuesLeft.add(0.0);
             valuesRight.add(0.0);
         }
@@ -169,8 +169,9 @@ class RunScribeDataField extends Ui.DataField {
                 var metricType = mMetricTypes[i]; 
                 if (metricType < 6) {
                     d[units] = getMetricUnit(metricType);
-                    mMetricContributorsLeft.add(createField("", metricType, Fit.DATA_TYPE_FLOAT, d));
-                    mMetricContributorsRight.add(createField("", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
+                    var metricName = getMetricName(metricType);
+                    mMetricContributorsLeft.add(createField(metricName + "_L", metricType, Fit.DATA_TYPE_FLOAT, d));
+                    mMetricContributorsRight.add(createField(metricName + "_R", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
                 } else {
                     hasPower = 1;
                 }
@@ -185,9 +186,8 @@ class RunScribeDataField extends Ui.DataField {
         
     function updateMetrics(sensor, contributors, index) {
     
-        if (!sensor.isChannelOpen) {
-            sensor.openChannel();
-        }
+        // openChannel has check for not opening if not needed. 
+        sensor.openChannel();
        
         sensor.idleTime++;
         if (sensor.idleTime > 30) {
@@ -199,7 +199,7 @@ class RunScribeDataField extends Ui.DataField {
         }
 
         // Uber        
-        var slotIndex = (mUpdateCount / mUpdatesPerValue) % 16;
+        var slotIndex = (mUpdateCount / mUpdatesPerValue) % 32;
         var updateOffset = (mUpdateCount % mUpdatesPerValue) * 1.0;
         var updateOffsetPlusOne = updateOffset + 1.0;
         
@@ -327,13 +327,13 @@ class RunScribeDataField extends Ui.DataField {
             return "Pronation";
         } 
         if (metricType == 4) {
-            return "Flight (%)";
+            return "Flight";
         } 
         if (metricType == 5) {
-            return "GCT (ms)";
+            return "Contact";
         } 
         if (metricType == 6) {
-            return "Power (W)";
+            return "Power";
         }
         
         return null;
@@ -373,14 +373,11 @@ class RunScribeDataField extends Ui.DataField {
     
     // Handle the update event
     function onUpdate(dc) {
-        var bgColor = getBackgroundColor();
         var fgColor = Gfx.COLOR_WHITE;
-        
-        if (bgColor == Gfx.COLOR_WHITE) {
+        if (getBackgroundColor() == Gfx.COLOR_WHITE) {
             fgColor = Gfx.COLOR_BLACK;
         }
         
-        dc.setColor(fgColor, bgColor);
         dc.clear();
         
         dc.setColor(fgColor, Gfx.COLOR_TRANSPARENT);
@@ -396,8 +393,8 @@ class RunScribeDataField extends Ui.DataField {
         var sensorRight = mSensorRight;
         var screenShape = mScreenShape;
 
-        // Update status
-        if ((sensorLeft != null && sensorRight != null) && (sensorRight.searching * sensorLeft.searching == 0)) {
+        // Update status - both sensors are either null or not null
+        if ((sensorLeft != null) && (sensorRight.searching * sensorLeft.searching == 0)) {
             
             var visibleMetricCount = mVisibleMetricCount;
             var met1y, met2y = 0;
@@ -437,7 +434,7 @@ class RunScribeDataField extends Ui.DataField {
             }
         } else {
             var message = "Searching(1.30)...";
-            if (sensorLeft == null || sensorRight == null) {
+            if (sensorLeft == null) {
                 message = "No Channel!";
             }
             
@@ -517,12 +514,12 @@ class RunScribeDataField extends Ui.DataField {
     
     hidden function drawTrendLine(dc, x, y, index, updateCount) {
         var startIndex = 0;
-        var limit = 16 - 1;
+        var limit = 32 - 1;
         
         var step = updateCount / mUpdatesPerValue; 
         
-        if (step >= 16) {
-            startIndex = (1 + step) % 16;  
+        if (step >= 32) {
+            startIndex = (1 + step) % 32;  
         } else {
             limit = step;
         }
@@ -534,7 +531,7 @@ class RunScribeDataField extends Ui.DataField {
         var max = values[index];
         
         for (var i = 1; i < limit; ++i) {
-            index = (i + startIndex) % 16;
+            index = (i + startIndex) % 32;
             var value = values[index];
             if (value < min) {
                 min = value;
@@ -549,14 +546,14 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        var deltaX = (xCenter * 0.6 / 15);
+        var deltaX = (xCenter * 0.6 / (32 - 1));
         var deltaY = yCenter * 0.3 / delta;
 
         limit -= 1; 
         
         for (var i = startIndex; i < startIndex + limit; ++i) {
-            var start = (values[i % 16] * 1.0 - min);
-            var end = (values[(i + 1) % 16] * 1.0 - min);
+            var start = (values[i % 32] * 1.0 - min);
+            var end = (values[(i + 1) % 32] * 1.0 - min);
             
             dc.drawLine(x, y - deltaY * start, x + deltaX, y - deltaY * end);
             x += deltaX;

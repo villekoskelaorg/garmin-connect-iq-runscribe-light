@@ -158,7 +158,20 @@ class RunScribeDataField extends Ui.DataField {
             for (var i = 0; i < mMetricTypes.size(); ++i) {
                 var metricType = mMetricTypes[i]; 
                 if (metricType < 6) {
-                    d[units] = getMetricUnit(metricType);
+                    d[units] = "";
+			        if (metricType < 2) {
+			            d[units] = "G";
+			        } 
+			        if (metricType == 3) {
+			            d[units] = "D";
+			        } 
+			        if (metricType == 4) {
+			            d[units] = "%";
+			        } 
+			        if (metricType == 5) {
+			            d[units] = "ms";
+			        } 
+                
                     var metricName = getMetricName(metricType);
                     mMetricContributorsLeft.add(createField(metricName + "_L", metricType, Fit.DATA_TYPE_FLOAT, d));
                     mMetricContributorsRight.add(createField(metricName + "_R", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
@@ -319,26 +332,6 @@ class RunScribeDataField extends Ui.DataField {
         if (metricType == 6) {
             return "Power";
         }
-        
-        return null;
-    }
-    
-    hidden function getMetricUnit(metricType) {
-        if (metricType < 2) {
-            return "G";
-        } 
-        if (metricType == 2) {
-            return "";
-        } 
-        if (metricType == 3) {
-            return "D";
-        } 
-        if (metricType == 4) {
-            return "%";
-        } 
-        if (metricType == 5) {
-            return "ms";
-        } 
         
         return null;
     }

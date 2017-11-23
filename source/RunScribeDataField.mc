@@ -384,7 +384,7 @@ class RunScribeDataField extends Ui.DataField {
                 met1y = centerY - yOffset;
                 met2y = centerY;
 
-                drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[2], 0);
+                drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[visibleMetricCount - 1], 0);
             }
             
             if (visibleMetricCount == 1 && firstMetric != 6 && dc.getHeight() == mScreenHeight) {
@@ -392,8 +392,18 @@ class RunScribeDataField extends Ui.DataField {
             }
             else {
                 drawMetricOffset(dc, metX, met1y, firstMetric, 0);
-                if (visibleMetricCount >= 2) {         
-                    drawMetricOffset(dc, metX, met2y, metricTypes[1], 0);
+                if (visibleMetricCount >= 2) {
+                    var deltaX = 0;
+                    if (visibleMetricCount > 3)
+                    {
+                        deltaX = xCenter * 0.5;
+                    }         
+                    
+                    drawMetricOffset(dc, metX - deltaX, met2y, metricTypes[1], 0);
+                    if (visibleMetricCount > 3)
+                    {
+                        drawMetricOffset(dc, metX + deltaX, met2y, metricTypes[2], 0);
+                    }
                 }
             }
         } else {

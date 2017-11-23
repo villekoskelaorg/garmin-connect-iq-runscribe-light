@@ -209,7 +209,7 @@ class RunScribeDataField extends Ui.DataField {
     
     function compute(info) {
     
-        System.print(System.getSystemStats().usedMemory + ":");
+        //System.print(System.getSystemStats().usedMemory + ":");
     
         var power = 0.0;
         var sensorCount = 0;

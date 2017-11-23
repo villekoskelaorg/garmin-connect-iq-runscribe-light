@@ -179,7 +179,7 @@ class RunScribeDataField extends Ui.DataField {
     
             if (hasPower > 0) {
                 d[units] = "W";
-                mPowerContributor = createField("", 12, Fit.DATA_TYPE_FLOAT, d);
+                mPowerContributor = createField("Power", 12, Fit.DATA_TYPE_FLOAT, d);
             }
         }        
     }    

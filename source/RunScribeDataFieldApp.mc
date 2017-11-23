@@ -27,14 +27,9 @@ using Toybox.Application as App;
 class RunScribeDataFieldApp extends App.AppBase {
     
     var mDataField;
-    var mScreenShape;
-    var mScreenHeight;
     
     function initialize() {
         AppBase.initialize();
-        var settings = System.getDeviceSettings();
-        mScreenShape = settings.screenShape;
-        mScreenHeight = settings.screenHeight;
     }
     
     function getInitialView() {
@@ -51,8 +46,8 @@ class RunScribeDataFieldApp extends App.AppBase {
             sensorRight = null;
         }
         
-        
-        mDataField = new RunScribeDataField(sensorLeft, sensorRight, mScreenShape, mScreenHeight);
+        var settings = System.getDeviceSettings();
+        mDataField = new RunScribeDataField(sensorLeft, sensorRight, settings.screenShape, settings.screenHeight);
         return [mDataField];
     }
     

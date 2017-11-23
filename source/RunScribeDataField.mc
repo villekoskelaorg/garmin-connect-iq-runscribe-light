@@ -43,10 +43,7 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mDataFontHeight;
     
     hidden var mCurrentLapFont;
-    hidden var mCurrentLapFontHeight;
-    
     hidden var mPreviousLapFont;
-    hidden var mPreviousLapFontHeight;
     
     var mSensorLeft;
     var mSensorRight;
@@ -265,11 +262,9 @@ class RunScribeDataField extends Ui.DataField {
         mDataFont = font;
     
         font = selectFont(dc, width * 0.1, "00.0");
-        mCurrentLapFontHeight = dc.getFontHeight(font) * 0.5;
         mCurrentLapFont = font;
 
         font = selectFont(dc, width * 0.075, "00.0");
-        mPreviousLapFontHeight = dc.getFontHeight(font) * 0.5;
         mPreviousLapFont = font;    
             
         var metricTitleY = -(mDataFontHeight + metricNameFontHeight) * 0.5;
@@ -490,11 +485,14 @@ class RunScribeDataField extends Ui.DataField {
             var deltaX2 = xCenter * (0.48 - xMargin);
             var deltaY = yDelta * 0.48;
     
-            dc.drawText(x - deltaX1, y - deltaY - mPreviousLapFontHeight, mPreviousLapFont, mPreviousLapLeft.format(format), Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x - deltaX2, y - deltaY - mCurrentLapFontHeight, mCurrentLapFont, mCurrentLaps[0].format(format), Gfx.TEXT_JUSTIFY_LEFT);
+            var previousLapFontHeight = dc.getFontHeight(mPreviousLapFont) * 0.5;
+            var currentLapFontHeight = dc.getFontHeight(mCurrentLapFont) * 0.5;
     
-            dc.drawText(x + deltaX2, y - deltaY - mCurrentLapFontHeight, mCurrentLapFont, mCurrentLaps[1].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + deltaX1, y - deltaY - mPreviousLapFontHeight, mPreviousLapFont, mPreviousLapRight.format(format), Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - deltaX1, y - deltaY - previousLapFontHeight, mPreviousLapFont, mPreviousLapLeft.format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x - deltaX2, y - deltaY - currentLapFontHeight, mCurrentLapFont, mCurrentLaps[0].format(format), Gfx.TEXT_JUSTIFY_LEFT);
+    
+            dc.drawText(x + deltaX2, y - deltaY - currentLapFontHeight, mCurrentLapFont, mCurrentLaps[1].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + deltaX1, y - deltaY - previousLapFontHeight, mPreviousLapFont, mPreviousLapRight.format(format), Gfx.TEXT_JUSTIFY_LEFT);
     
             drawTrendLine(dc, x - xCenter * 0.7, y + yDelta * 0.7, 0, mUpdateCount);
             drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.7, 1, mUpdateCount);

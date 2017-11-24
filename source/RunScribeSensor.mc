@@ -109,7 +109,10 @@ class RunScribeSensor extends Ant.GenericChannel {
 	        }
         } else if (Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) {
             if (Ant.MSG_ID_RF_EVENT == (payload[0] & 0xFF)) {
-                if (Ant.MSG_CODE_EVENT_CHANNEL_CLOSED == (payload[1] & 0xFF)) {
+                var secondByte = payload[1] & 0xFF;
+                if (Ant.MSG_CODE_EVENT_CHANNEL_CLOSED == secondByte ||
+                    Ant.MSG_CODE_EVENT_RX_SEARCH_TIMEOUT == secondByte ||
+                    Ant.MSG_ID_LOW_PRIORITY_SEARCH_TIMEOUT == secondByte) {
                     // Channel closed, re-open
                     closeChannel();
                 }

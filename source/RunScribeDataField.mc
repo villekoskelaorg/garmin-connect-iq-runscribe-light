@@ -51,8 +51,8 @@ class RunScribeDataField extends Ui.DataField {
     hidden var mScreenShape;
     hidden var mScreenHeight;
     
-    hidden var xCenter;
-    hidden var yCenter;
+    hidden var mCenterX;
+    hidden var mCenterY;
     
     hidden var mUpdateLayout = 0;
     
@@ -221,7 +221,7 @@ class RunScribeDataField extends Ui.DataField {
     
         //System.print(System.getSystemStats().usedMemory + ":");
     
-        var power = 0.0;
+        var power = 0;
         var sensorCount = 0;
         
         var sensorLeft = mSensorLeft;
@@ -257,8 +257,8 @@ class RunScribeDataField extends Ui.DataField {
             visibleMetricCount = 1;
         }
         
-        xCenter = width / 2;
-        yCenter = height / 2;
+        mCenterX = width / 2;
+        mCenterY = height / 2;
                 
         // Compute data width/height for horizintal layouts
         var metricNameFontHeight = dc.getFontHeight(Gfx.FONT_XTINY) + 2;
@@ -338,11 +338,14 @@ class RunScribeDataField extends Ui.DataField {
     
     // Handle the update event
     function onUpdate(dc) {
+        var bgColor = getBackgroundColor();
         var fgColor = Gfx.COLOR_WHITE;
-        if (getBackgroundColor() == Gfx.COLOR_WHITE) {
+        
+        if (bgColor == Gfx.COLOR_WHITE) {
             fgColor = Gfx.COLOR_BLACK;
         }
         
+        dc.setColor(fgColor, bgColor);
         dc.clear();
         
         dc.setColor(fgColor, Gfx.COLOR_TRANSPARENT);
@@ -351,8 +354,8 @@ class RunScribeDataField extends Ui.DataField {
             onLayout(dc);
         }
 
-        var metX = xCenter;
-        var centerY = yCenter;
+        var metX = mCenterX;
+        var centerY = mCenterY;
 
         var sensorLeft = mSensorLeft;
         var sensorRight = mSensorRight;
@@ -393,7 +396,7 @@ class RunScribeDataField extends Ui.DataField {
                     var deltaX = 0;
                     if (visibleMetricCount > 3)
                     {
-                        deltaX = xCenter * 0.5;
+                        deltaX = mCenterX * 0.5;
                     }         
                     
                     drawMetricOffset(dc, metX - deltaX, met2y, metricTypes[1], 0);
@@ -448,7 +451,7 @@ class RunScribeDataField extends Ui.DataField {
             format = "%d";
         }
 
-        var yDelta = yCenter;
+        var yDelta = mCenterY;
 
         if (mScreenShape == System.SCREEN_SHAPE_ROUND) {
             yDelta *= 0.85;
@@ -465,8 +468,8 @@ class RunScribeDataField extends Ui.DataField {
         dc.drawLine(x, y + yDelta * 0.8, x, y - yDelta * 0.7);
          
         if (dc.getHeight() == mScreenHeight) {
-            var deltaX1 = xCenter * (0.48 + xMargin);
-            var deltaX2 = xCenter * (0.48 - xMargin);
+            var deltaX1 = mCenterX * (0.48 + xMargin);
+            var deltaX2 = mCenterX * (0.48 - xMargin);
             var deltaY = yDelta * 0.48;
     
             var previousLapFontHeight = dc.getFontHeight(mPreviousLapFont) * 0.5;
@@ -478,8 +481,8 @@ class RunScribeDataField extends Ui.DataField {
             dc.drawText(x + deltaX2, y - deltaY - currentLapFontHeight, mCurrentLapFont, mCurrentLaps[1].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
             dc.drawText(x + deltaX1, y - deltaY - previousLapFontHeight, mPreviousLapFont, mPreviousLapRight.format(format), Gfx.TEXT_JUSTIFY_LEFT);
     
-            drawTrendLine(dc, x - xCenter * 0.65, y + yDelta * 0.8, 0, mUpdateCount);
-            drawTrendLine(dc, x + xCenter * 0.1, y + yDelta * 0.8, 1, mUpdateCount);
+            drawTrendLine(dc, x - mCenterX * 0.65, y + yDelta * 0.8, 0, mUpdateCount);
+            drawTrendLine(dc, x + mCenterX * 0.1, y + yDelta * 0.8, 1, mUpdateCount);
         }
     }    
     
@@ -517,8 +520,8 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        var deltaX = (xCenter * 0.55 / (32 - 1));
-        var deltaY = yCenter * 0.3 / delta;
+        var deltaX = (mCenterX * 0.55 / (32 - 1));
+        var deltaY = mCenterY * 0.3 / delta;
 
         limit -= 1; 
         

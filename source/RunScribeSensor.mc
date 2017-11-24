@@ -40,7 +40,7 @@ class RunScribeSensor extends Ant.GenericChannel {
 
     // Ant channel & states
     var searching = 1;
-    var isChannelOpen = false;
+    var isChannelOpen = 0;
     var idleTime = 0;
     
     function initialize(deviceType, rsFreq, rsMesgPeriod) {
@@ -64,17 +64,19 @@ class RunScribeSensor extends Ant.GenericChannel {
     }
     
     function openChannel() {
-        if (!isChannelOpen) {
-            isChannelOpen = open();
+        if (isChannelOpen == 0) {
+            if (open()) {
+                isChannelOpen = 1;
+            }
         }
     }
     
     function closeChannel() {
-        if (isChannelOpen) {
+        if (isChannelOpen == 1) {
             close();
 
             searching = 1;
-            isChannelOpen = false;
+            isChannelOpen = 0;
             idleTime = 0;
         }        
     }

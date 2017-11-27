@@ -198,8 +198,13 @@ class RunScribeDataField extends Ui.DataField {
             sensor.closeChannel();
         }
     
-        for (var i = 0; i < contributors.size(); ++i) {
-            contributors[i].setData(sensor.data[mMetricTypes[i]]);
+        var contributorIndex = 0;
+        for (var i = 0; i < mMetricTypes.size(); ++i) {
+            var metricType = mMetricTypes[i];
+            if (metricType < 6) {
+                contributors[contributorIndex].setData(sensor.data[metricType]);
+                ++contributorIndex;
+            }
         }
 
         // Uber        

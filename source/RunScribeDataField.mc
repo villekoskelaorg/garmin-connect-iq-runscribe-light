@@ -419,7 +419,7 @@ class RunScribeDataField extends Ui.DataField {
                 }
             }
         } else {
-            var message = "Searching(1.30)...";
+            var message = "Searching (1.00)...";
             if (sensorLeft == null) {
                 message = "No Channel!";
             }
@@ -498,7 +498,7 @@ class RunScribeDataField extends Ui.DataField {
         }
     }    
     
-    hidden function drawTrendLine(dc, x, y, index, updateCount) {
+    hidden function drawTrendLine(dc, x, y, sensorIndex, updateCount) {
         var startIndex = 0;
         var limit = 32 - 1;
         
@@ -512,7 +512,7 @@ class RunScribeDataField extends Ui.DataField {
         
         var index = startIndex;
         
-        var values = mValues[index];
+        var values = mValues[sensorIndex];
         var min = values[index];
         var max = values[index];
         

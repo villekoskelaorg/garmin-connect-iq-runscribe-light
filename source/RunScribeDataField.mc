@@ -105,9 +105,9 @@ class RunScribeDataField extends Ui.DataField {
         var app = App.getApp();
         var metricCount = mMetricTypes.size();
         
-        if (mMetricContributorsLeft.size() == 0 && mPowerContributor == null) {
-            metricCount = 0;
-            mMetricTypes = [];
+        // Read the metric types only once since contributors are created based on what selected
+        if (metricCount == 0) {
+
             var filter = 0;
             var name = "tM";
 
@@ -121,8 +121,43 @@ class RunScribeDataField extends Ui.DataField {
                     filter = filter | metricFilter;
                 }
             }
+            
+	        var d = {};
+	        var units = "units";
+	        var hasPower = 0;
+	        
+            for (var i = 0; i < mMetricTypes.size(); ++i) {
+                var metricType = mMetricTypes[i]; 
+                if (metricType < 6) {
+                    d[units] = "";
+                    if (metricType < 2) {
+                        d[units] = "G";
+                    } 
+                    if (metricType == 3) {
+                        d[units] = "D";
+                    } 
+                    if (metricType == 4) {
+                        d[units] = "%";
+                    } 
+                    if (metricType == 5) {
+                        d[units] = "ms";
+                    } 
+                
+                    var metricName = getMetricName(metricType);
+                    mMetricContributorsLeft.add(createField(metricName + "_L", metricType, Fit.DATA_TYPE_FLOAT, d));
+                    mMetricContributorsRight.add(createField(metricName + "_R", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
+                } else {
+                    hasPower = 1;
+                }
+            }
+    
+            if (hasPower > 0) {
+                d[units] = "W";
+                mPowerContributor = createField("Power", 12, Fit.DATA_TYPE_FLOAT, d);
+            }
         }
         
+        // Visible metric can be edited also later
         mVisibleMetrics = app.getProperty("vM");
         if (metricCount < mVisibleMetrics) {
             mVisibleMetrics = metricCount;
@@ -148,43 +183,6 @@ class RunScribeDataField extends Ui.DataField {
         mPreviousLapRight = mCurrentLaps[1];
         
         mLapUpdateCount = 0;
-        
-        var d = {};
-        var units = "units";
-
-        var hasPower = 0;
-        
-        if (mMetricContributorsLeft.size() == 0 && mPowerContributor == null) {
-            for (var i = 0; i < mMetricTypes.size(); ++i) {
-                var metricType = mMetricTypes[i]; 
-                if (metricType < 6) {
-                    d[units] = "";
-			        if (metricType < 2) {
-			            d[units] = "G";
-			        } 
-			        if (metricType == 3) {
-			            d[units] = "D";
-			        } 
-			        if (metricType == 4) {
-			            d[units] = "%";
-			        } 
-			        if (metricType == 5) {
-			            d[units] = "ms";
-			        } 
-                
-                    var metricName = getMetricName(metricType);
-                    mMetricContributorsLeft.add(createField(metricName + "_L", metricType, Fit.DATA_TYPE_FLOAT, d));
-                    mMetricContributorsRight.add(createField(metricName + "_R", metricType + 6, Fit.DATA_TYPE_FLOAT, d));
-                } else {
-                    hasPower = 1;
-                }
-            }
-    
-            if (hasPower > 0) {
-                d[units] = "W";
-                mPowerContributor = createField("Power", 12, Fit.DATA_TYPE_FLOAT, d);
-            }
-        }        
     }    
         
     function updateMetrics(sensor, contributors, index) {

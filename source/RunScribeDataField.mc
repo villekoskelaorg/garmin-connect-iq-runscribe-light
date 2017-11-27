@@ -33,6 +33,7 @@ class RunScribeDataField extends Ui.DataField {
 
     hidden var mVisibleMetrics;
     hidden var mVisibleMetricCount;
+    hidden var mMetricOffset;
 
     // Common
     hidden var mMetricTitleY;
@@ -122,10 +123,10 @@ class RunScribeDataField extends Ui.DataField {
                 }
             }
             
-	        var d = {};
-	        var units = "units";
-	        var hasPower = 0;
-	        
+            var d = {};
+            var units = "units";
+            var hasPower = 0;
+            
             for (var i = 0; i < mMetricTypes.size(); ++i) {
                 var metricType = mMetricTypes[i]; 
                 if (metricType < 6) {
@@ -162,6 +163,8 @@ class RunScribeDataField extends Ui.DataField {
         if (metricCount < mVisibleMetrics) {
             mVisibleMetrics = metricCount;
         }
+
+        mMetricOffset = (app.getProperty("fM") - 1) % metricCount;
 
         // Uber        
         mUpdatesPerValue = app.getProperty("tLI");
@@ -204,7 +207,7 @@ class RunScribeDataField extends Ui.DataField {
         var updateOffset = (mUpdateCount % mUpdatesPerValue) * 1.0;
         var updateOffsetPlusOne = updateOffset + 1.0;
         
-        var value = sensor.data[mMetricTypes[0]] * 1.0;
+        var value = sensor.data[mMetricTypes[mMetricOffset]] * 1.0;
 
         var values = mValues[index]; 
         values[slotIndex] = (values[slotIndex] * updateOffset + value) / updateOffsetPlusOne;
@@ -362,7 +365,10 @@ class RunScribeDataField extends Ui.DataField {
         // Update status - both sensors are either null or not null
         if ((sensorLeft != null) && (sensorRight.searching * sensorLeft.searching == 0)) {
             var metricTypes = mMetricTypes;
-            var firstMetric = metricTypes[0];
+            var metricOffset = mMetricOffset;
+            var metricCount = metricTypes.size();
+            
+            var firstMetric = metricTypes[metricOffset];
             
             var visibleMetricCount = mVisibleMetricCount;
             var met1y, met2y = 0;
@@ -382,7 +388,7 @@ class RunScribeDataField extends Ui.DataField {
                 met1y = centerY - yOffset;
                 met2y = centerY;
 
-                drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[visibleMetricCount - 1], 0);
+                drawMetricOffset(dc, metX, centerY + yOffset, metricTypes[(visibleMetricCount - 1 + metricOffset) % metricCount], 0);
             }
             
             if (visibleMetricCount == 1 && firstMetric != 6 && dc.getHeight() == mScreenHeight) {
@@ -397,10 +403,10 @@ class RunScribeDataField extends Ui.DataField {
                         deltaX = mCenterX * 0.5;
                     }         
                     
-                    drawMetricOffset(dc, metX - deltaX, met2y, metricTypes[1], 0);
+                    drawMetricOffset(dc, metX - deltaX, met2y, metricTypes[(1 + metricOffset) % metricCount], 0);
                     if (visibleMetricCount > 3)
                     {
-                        drawMetricOffset(dc, metX + deltaX, met2y, metricTypes[2], 0);
+                        drawMetricOffset(dc, metX + deltaX, met2y, metricTypes[(2 + metricOffset) % metricCount], 0);
                     }
                 }
             }

@@ -197,10 +197,13 @@ class RunScribeDataField extends Ui.DataField {
         if (sensor.idleTime > 30) {
             sensor.closeChannel();
         }
-    
+        
+        var metricTypes = mMetricTypes;
         var contributorIndex = 0;
-        for (var i = 0; i < mMetricTypes.size(); ++i) {
-            var metricType = mMetricTypes[i];
+
+        // Skip the power metric - different contributor        
+        for (var i = 0; i < metricTypes.size(); ++i) {
+            var metricType = metricTypes[i];
             if (metricType < 6) {
                 contributors[contributorIndex].setData(sensor.data[metricType]);
                 ++contributorIndex;
@@ -212,7 +215,7 @@ class RunScribeDataField extends Ui.DataField {
         var updateOffset = (mUpdateCount % mUpdatesPerValue) * 1.0;
         var updateOffsetPlusOne = updateOffset + 1.0;
         
-        var value = sensor.data[mMetricTypes[mMetricOffset]] * 1.0;
+        var value = sensor.data[metricTypes[mMetricOffset]] * 1.0;
 
         var values = mValues[index]; 
         values[slotIndex] = (values[slotIndex] * updateOffset + value) / updateOffsetPlusOne;

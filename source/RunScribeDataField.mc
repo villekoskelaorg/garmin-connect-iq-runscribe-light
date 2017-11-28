@@ -443,12 +443,15 @@ class RunScribeDataField extends Ui.DataField {
             format = "%d";
         }
         
+        var dataLeft = mSensorLeft.data;
+        var dataRight = mSensorRight.data;
+        
         if (metricType == 6) {
             // Power metric presents a single value
-            dc.drawText(x, metricValueY, dataFont, ((mSensorLeft.data[6] + mSensorRight.data[6]) / 2).format(format), Gfx.TEXT_JUSTIFY_CENTER);
+            dc.drawText(x, metricValueY, dataFont, ((dataLeft[6] + dataRight[6]) / 2).format(format), Gfx.TEXT_JUSTIFY_CENTER);
         } else {
-            dc.drawText(x - 8, metricValueY, dataFont, mSensorLeft.data[metricType].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
-            dc.drawText(x + 8, metricValueY, dataFont, mSensorRight.data[metricType].format(format), Gfx.TEXT_JUSTIFY_LEFT);
+            dc.drawText(x - 8, metricValueY, dataFont, dataLeft[metricType].format(format), Gfx.TEXT_JUSTIFY_RIGHT);
+            dc.drawText(x + 8, metricValueY, dataFont, dataRight[metricType].format(format), Gfx.TEXT_JUSTIFY_LEFT);
             
             // Draw line
             dc.drawLine(x, metricValueY, x, metricValueY + mDataFontHeight);

@@ -39,7 +39,7 @@ class RunScribeSensor extends Ant.GenericChannel {
     var data = [];
 
     // Ant channel & states
-    var searching = 0;
+    var searching = 1;
     var idleTime = 0;
 
     hidden var isChannelOpen = 0;

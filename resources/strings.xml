@@ -9,7 +9,7 @@
 	
     <string id="visibleMetrics">Visible metrics</string>
     <string id="firstMetric">First metric</string>
-	<string id="trend_line_interval">Trendline Update</string>
+	<string id="trend_line_duration">Trendline duration</string>
 	
     <string id="antRate">ANT Message Rate</string>
     
@@ -17,11 +17,11 @@
     <string id="Hz8">8Hz</string>
     <string id="Hz16">16Hz</string>
 	
-    <string id="sec1">1 sec</string>
-    <string id="sec2">2 sec</string>
-    <string id="sec5">5 sec</string>    
-    <string id="sec10">10 sec</string>    
-    <string id="sec20">20 sec</string>    
+    <string id="min1">1 min</string>
+    <string id="min2">2 min</string>
+    <string id="min5">5 min</string>    
+    <string id="min10">10 min</string>    
+    <string id="min20">20 min</string>    
 	
 	<!-- Metrics labels for FIT file -->
 	<string id="impact_gs_label_left">Impact Gs Left</string>

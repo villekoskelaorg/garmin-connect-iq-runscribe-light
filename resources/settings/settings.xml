@@ -60,13 +60,13 @@
         <settingConfig type="numeric" min="1" max="4"/>
     </setting>
 
-    <setting propertyKey="@Properties.tLI" title="@Strings.trend_line_interval">
+    <setting propertyKey="@Properties.tLD" title="@Strings.trend_line_duration">
         <settingConfig type="list">
-            <listEntry value="1">@Strings.sec1</listEntry>
-            <listEntry value="2">@Strings.sec2</listEntry>
-            <listEntry value="5">@Strings.sec5</listEntry>
-            <listEntry value="10">@Strings.sec10</listEntry>
-            <listEntry value="20">@Strings.sec20</listEntry>
+            <listEntry value="1">@Strings.min1</listEntry>
+            <listEntry value="2">@Strings.min2</listEntry>
+            <listEntry value="5">@Strings.min5</listEntry>
+            <listEntry value="10">@Strings.min10</listEntry>
+            <listEntry value="20">@Strings.min20</listEntry>
         </settingConfig>
     </setting>
     

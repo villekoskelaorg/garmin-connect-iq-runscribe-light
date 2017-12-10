@@ -167,7 +167,7 @@ class RunScribeDataField extends Ui.DataField {
         mMetricOffset = (app.getProperty("fM") - 1) % metricCount;
 
         // Uber        
-        mUpdatesPerValue = app.getProperty("tLI");
+        mUpdatesPerValue = app.getProperty("tLD") * 2;
         mUpdateCount = 0;
         mLapUpdateCount = 0;   
         
@@ -535,7 +535,7 @@ class RunScribeDataField extends Ui.DataField {
             delta = 1;
         }
         
-        var deltaX = (mCenterX * 0.55 / (32 - 1));
+        var deltaX = (mCenterX * 0.55 / (31 - 1));
         var deltaY = mCenterY * 0.3 / delta;
 
         limit -= 1; 

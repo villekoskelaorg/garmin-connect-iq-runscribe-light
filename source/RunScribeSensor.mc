@@ -85,6 +85,7 @@ class RunScribeSensor extends Ant.GenericChannel {
     function onMessage(msg) {
         // Parse the payload
         var payload = msg.getPayload();
+        var page = (payload[0] & 0xFF);
         
         if (Ant.MSG_ID_BROADCAST_DATA == msg.messageId) {
             // Were we searching?
@@ -92,24 +93,23 @@ class RunScribeSensor extends Ant.GenericChannel {
                 searching = 0;
             }
             
-            if (idleTime >= 0) {
-                var page = (payload[0] & 0xFF);
-                if (page > 0x0F) {
-                    var extra = payload[7];
-                
-                    data[0] = payload[2] / 16.0; // Braking
-			        data[1] = payload[1] / 16.0; // Impact
-                    data[2] = payload[0] & 0x0F + 1; // Footstrike
-                    data[3] = ((((extra & 0xC0) << 2) + payload[6]) - 512.0) / 10.0; // Pronation
-                    data[4] = ((((extra & 0x0C) << 6) + payload[4]) - 224.0) / 8.0; // Flight ratio
-			        data[5] = ((extra & 0x03) << 8) + payload[3]; // Contact time
-                    data[6] = ((extra & 0x30) << 4) + payload[5]; // Power
+            //if (idleTime >= 0) {
+            if (page > 0x0F) {
+                var extra = payload[7];
+            
+                data[0] = payload[2] / 16.0; // Braking
+		        data[1] = payload[1] / 16.0; // Impact
+                data[2] = payload[0] & 0x0F + 1; // Footstrike
+                data[3] = ((((extra & 0xC0) << 2) + payload[6]) - 512.0) / 10.0; // Pronation
+                data[4] = ((((extra & 0x0C) << 6) + payload[4]) - 224.0) / 8.0; // Flight ratio
+		        data[5] = ((extra & 0x03) << 8) + payload[3]; // Contact time
+                data[6] = ((extra & 0x30) << 4) + payload[5]; // Power
 
-                    idleTime = -1;
-	            }
-	        }
+                //idleTime = -1;
+            }
+	        //}
         } else if (Ant.MSG_ID_CHANNEL_RESPONSE_EVENT == msg.messageId) {
-            if (Ant.MSG_ID_RF_EVENT == (payload[0] & 0xFF)) {
+            if (Ant.MSG_ID_RF_EVENT == page) {
                 var secondByte = payload[1] & 0xFF;
                 if (Ant.MSG_CODE_EVENT_CHANNEL_CLOSED == secondByte ||
                     Ant.MSG_CODE_EVENT_RX_SEARCH_TIMEOUT == secondByte ||
